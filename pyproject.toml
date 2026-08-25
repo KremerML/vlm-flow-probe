@@ -40,6 +40,7 @@ vfp-distill = "vlmflowprobe.cli.distill_results:main"
 vfp-analyze-multilayer = "vlmflowprobe.cli.analyze_multilayer:main"
 vfp-gen-clevr = "vlmflowprobe.cli.generate_clevr_lite:main"
 vfp-gate = "vlmflowprobe.cli.verify_equivalence:main"
+vfp-smoke-controls = "vlmflowprobe.cli.smoke_matched_controls:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -112,6 +112,9 @@ class AblationExperiment:
         # Default False so existing configs reproduce their published numbers; new configs
         # set it true so a missing metric raises instead of silently drawing uniformly.
         strict_matching = bool(random_cfg.get("strict_matching", False))
+        # Off for full runs (per-draw records are large and the cost is pointless
+        # once matching is trusted); on for smoke tests and audits.
+        log_matching = bool(random_cfg.get("log_matching", False))
         seed = int(
             random_cfg.get(
                 "seed",
@@ -123,6 +126,11 @@ class AblationExperiment:
         )
         rng = random.Random(seed + int(random_seed_offset))
         normalized_stats = self._normalize_feature_stats(feature_stats)
+        diagnostics = None
+        if log_matching:
+            from vlmflowprobe.ablation.matching_diagnostics import MatchingDiagnostics
+
+            diagnostics = MatchingDiagnostics(metric=matched_metric, strict=strict_matching)
 
         random_results_first = []
         random_feature_sets: List[List[int]] = []
@@ -158,6 +166,7 @@ class AblationExperiment:
                 matched_metric=matched_metric,
                 rng=rng,
                 strict_matching=strict_matching,
+                diagnostics=diagnostics,
             )
             random_feature_sets.append(random_features)
 
@@ -219,6 +228,7 @@ class AblationExperiment:
                 "sampling": random_sampling,
                 "matched_metric": matched_metric,
                 "strict_matching": strict_matching,
+                "log_matching": log_matching,
                 # What the sampler actually did, not merely what was requested. The
                 # published v2 runs asked for matched sampling and silently got uniform;
                 # recording the effective regime makes that visible in the result file.
@@ -227,6 +237,13 @@ class AblationExperiment:
                 ),
                 "seed": seed + int(random_seed_offset),
             },
+            "matching_diagnostics": (
+                diagnostics.summarize(
+                    causal_top_k=set(int(f) for f in binding_features)
+                )
+                if diagnostics is not None
+                else None
+            ),
             "evaluation_settings": {
                 "primary_metric": eval_cfg.get("primary_metric", "pred_token_prob"),
                 "logprob_normalize": logprob_normalize,
@@ -247,6 +264,7 @@ class AblationExperiment:
         matched_metric: str,
         rng: random.Random,
         strict_matching: bool = False,
+        diagnostics=None,
     ) -> List[int]:
         n_total = int(self.sae.n_features)
         target_count = int(n_random_features) if int(n_random_features) > 0 else len(binding_features)
@@ -269,6 +287,7 @@ class AblationExperiment:
                 matched_metric=matched_metric,
                 rng=rng,
                 strict_matching=strict_matching,
+                diagnostics=diagnostics,
             )
         if sampling in ("matched", "matched_activation", "matched_metric"):
             _warn_uniform_fallback(
@@ -301,11 +320,16 @@ class AblationExperiment:
         matched_metric: str,
         rng: random.Random,
         strict_matching: bool = False,
+        diagnostics=None,
     ) -> List[int]:
         selected: List[int] = []
         available = set(pool)
+        if diagnostics is not None:
+            diagnostics.start_set()
         candidate_stats = {
-            idx: AblationExperiment._extract_metric_value(feature_stats.get(idx, {}), matched_metric)
+            idx: AblationExperiment._extract_metric_value(
+                feature_stats.get(idx, {}), matched_metric, strict=strict_matching
+            )
             for idx in available
         }
         valid_metric_pool = {idx for idx in available if candidate_stats.get(idx) is not None}
@@ -329,12 +353,15 @@ class AblationExperiment:
         neighbor_width = 16
 
         for feature_idx in binding_features[:target_count]:
-            target_value = AblationExperiment._extract_metric_value(
-                feature_stats.get(feature_idx, {}), matched_metric
+            target_value, used_fallback = AblationExperiment._extract_metric_value(
+                feature_stats.get(feature_idx, {}), matched_metric,
+                strict=strict_matching, with_provenance=True,
             )
+            draw_path = "matched"
             if target_value is None or not valid_metric_pool:
                 if not available:
                     break
+                draw_path = "uniform_no_target" if target_value is None else "uniform_pool_exhausted"
                 choice = rng.choice(sorted(available))
             else:
                 scored = sorted(
@@ -357,6 +384,15 @@ class AblationExperiment:
                             k=1,
                         )[0]
                 valid_metric_pool.discard(choice)
+            if diagnostics is not None:
+                diagnostics.record(
+                    binding_feature=int(feature_idx),
+                    binding_value=target_value,
+                    control_feature=int(choice),
+                    control_value=candidate_stats.get(choice),
+                    path=draw_path,
+                    used_fallback_key=bool(used_fallback),
+                )
             if choice in available:
                 available.remove(choice)
                 selected.append(choice)
@@ -388,21 +424,37 @@ class AblationExperiment:
         return normalized
 
     @staticmethod
-    def _extract_metric_value(stats: Dict, metric: str) -> Optional[float]:
+    def _extract_metric_value(
+        stats: Dict, metric: str, strict: bool = False, with_provenance: bool = False
+    ):
+        """The requested metric, or a fallback key when not strict.
+
+        The fallback chain is a compatibility shim for v1 stats files. It is a
+        hazard for matching: silently substituting a different statistic for
+        some features means the "matched" set is matched on a mixture of
+        metrics. ``strict=True`` refuses it -- one metric or nothing.
+
+        With ``with_provenance`` returns ``(value, used_fallback_key)``.
+        """
+        def result(value, used_fallback):
+            return (value, used_fallback) if with_provenance else value
+
         if not isinstance(stats, dict):
-            return None
+            return result(None, False)
         if metric in stats and stats[metric] is not None:
             try:
-                return float(stats[metric])
+                return result(float(stats[metric]), False)
             except (TypeError, ValueError):
-                return None
+                return result(None, False)
+        if strict:
+            return result(None, False)
         for fallback in ("correct_mean", "ratio", "diff", "incorrect_mean"):
             if fallback in stats and stats[fallback] is not None:
                 try:
-                    return float(stats[fallback])
+                    return result(float(stats[fallback]), True)
                 except (TypeError, ValueError):
                     continue
-        return None
+        return result(None, False)
 
     @staticmethod
     def _aggregate_random_summaries(set_summaries: List[dict]) -> Dict[str, Optional[float]]:

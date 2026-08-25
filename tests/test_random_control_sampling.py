@@ -133,3 +133,68 @@ class TestRandomControlSampling(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMatchingDiagnostics(unittest.TestCase):
+    """The opt-in matching instrumentation and the pool-depth ceiling."""
+
+    def _stats(self, n=500):
+        # activation_mean spread over three orders of magnitude
+        return {i: {"activation_mean": 1e-3 * (1.02 ** i)} for i in range(n)}
+
+    def test_pool_depth_reports_shallow_pool(self):
+        from vlmflowprobe.ablation.matching_diagnostics import matched_pool_depth
+
+        stats = self._stats()
+        binding = list(range(400, 500))  # the top 100 by activation
+        depth = matched_pool_depth(stats, binding, "activation_mean")
+        # only features inside the binding range qualify, and they are binding
+        self.assertLess(depth["max_disjoint_matched_sets"], 1.0)
+        self.assertFalse(depth["sufficient_for_one_set"])
+
+    def test_pool_depth_reports_deep_pool(self):
+        from vlmflowprobe.ablation.matching_diagnostics import matched_pool_depth
+
+        stats = self._stats()
+        binding = list(range(0, 20)) + list(range(480, 500))  # spans the range
+        depth = matched_pool_depth(stats, binding, "activation_mean")
+        self.assertTrue(depth["sufficient_for_one_set"])
+        self.assertGreater(depth["max_disjoint_matched_sets"], 5)
+
+    def test_strict_extract_refuses_fallback_keys(self):
+        from vlmflowprobe.ablation.ablation_experiments import AblationExperiment
+
+        stats = {"ratio": 3.0}  # a v1 key, not what we asked for
+        self.assertEqual(
+            AblationExperiment._extract_metric_value(stats, "activation_mean"), 3.0
+        )
+        self.assertIsNone(
+            AblationExperiment._extract_metric_value(stats, "activation_mean", strict=True)
+        )
+        value, used_fallback = AblationExperiment._extract_metric_value(
+            stats, "activation_mean", with_provenance=True
+        )
+        self.assertEqual((value, used_fallback), (3.0, True))
+
+    def test_diagnostics_flags_uniform_vs_matched(self):
+        from vlmflowprobe.ablation.matching_diagnostics import MatchingDiagnostics
+
+        diag = MatchingDiagnostics(metric="activation_mean", strict=True)
+        diag.start_set()
+        for i in range(10):
+            diag.record(binding_feature=i, binding_value=1.0,
+                        control_feature=100 + i, control_value=0.95,
+                        path="matched")
+        report = diag.summarize()
+        self.assertEqual(report["matched_fraction"], 1.0)
+        self.assertAlmostEqual(report["control_over_binding_median_ratio"], 0.95)
+
+        ghost = MatchingDiagnostics(metric="correct_mean")
+        ghost.start_set()
+        for i in range(10):
+            ghost.record(binding_feature=i, binding_value=None,
+                         control_feature=100 + i, control_value=6e-8,
+                         path="uniform_no_target")
+        r2 = ghost.summarize(binding_values=[0.12] * 10)
+        self.assertEqual(r2["matched_fraction"], 0.0)
+        self.assertLess(r2["control_over_binding_median_ratio"], 1e-5)
