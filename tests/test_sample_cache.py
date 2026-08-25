@@ -10,7 +10,7 @@ from vlmflowprobe.ablation.sample_cache import (
     save_sample_cache,
 )
 from vlmflowprobe.core.sparse_autoencoder import SparseAutoencoder
-from tests.stubs import CountingModel, DatasetStub
+from tests.stubs import CountingModel, DatasetStub, adapt
 
 BASELINE_FIELDS = (
     "baseline_pred",
@@ -25,7 +25,7 @@ BASELINE_FIELDS = (
 def _ablator(model=None):
     model = model or CountingModel(d_model=4)
     sae = SparseAutoencoder(d_model=4, n_features=8)
-    return FeatureAblator(model, sae, layer_idx=0), model
+    return FeatureAblator(adapt(model), sae, layer_idx=0), model
 
 
 class TestSampleCache(unittest.TestCase):

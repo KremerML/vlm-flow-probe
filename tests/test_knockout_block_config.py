@@ -1,6 +1,6 @@
 import unittest
 
-from vlmflowprobe.knockout.knockout_utils import (
+from vlmflowprobe.knockout.block_config import (
     build_block_config,
     build_block_config_for_layers,
 )

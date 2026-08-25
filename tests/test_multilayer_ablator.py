@@ -6,7 +6,7 @@ from torch import nn
 from vlmflowprobe.ablation.feature_ablator import FeatureAblator
 from vlmflowprobe.ablation.multilayer_ablator import MultiLayerFeatureAblator
 from vlmflowprobe.core.sparse_autoencoder import SparseAutoencoder
-from tests.stubs import DatasetStub
+from tests.stubs import DatasetStub, adapt
 
 
 class MultiLayerModel(nn.Module):
@@ -38,7 +38,7 @@ class TestMultiLayerHookRegistration(unittest.TestCase):
     def test_registers_one_hook_per_named_layer_and_removes_all(self):
         model = MultiLayerModel(n_layers=5)
         ablator = MultiLayerFeatureAblator(
-            model, make_saes([0, 1, 2, 3, 4]), activation_site="residual"
+            adapt(model), make_saes([0, 1, 2, 3, 4]), activation_site="residual"
         )
 
         handles = ablator._register_sae_hooks(
@@ -62,7 +62,7 @@ class TestMultiLayerHookRegistration(unittest.TestCase):
         # "not in the mapping" and "mapped to []" are different interventions.
         model = MultiLayerModel(n_layers=3)
         ablator = MultiLayerFeatureAblator(
-            model, make_saes([0, 1, 2]), activation_site="residual"
+            adapt(model), make_saes([0, 1, 2]), activation_site="residual"
         )
 
         handles = ablator._register_sae_hooks(
@@ -81,7 +81,7 @@ class TestMultiLayerHookRegistration(unittest.TestCase):
     def test_unknown_layer_raises(self):
         model = MultiLayerModel(n_layers=3)
         ablator = MultiLayerFeatureAblator(
-            model, make_saes([0, 1]), activation_site="residual"
+            adapt(model), make_saes([0, 1]), activation_site="residual"
         )
         with self.assertRaises(KeyError):
             ablator._register_sae_hooks(
@@ -97,7 +97,7 @@ class TestMultiLayerHookRegistration(unittest.TestCase):
     def test_flat_feature_list_is_rejected(self):
         model = MultiLayerModel(n_layers=3)
         ablator = MultiLayerFeatureAblator(
-            model, make_saes([0, 1]), activation_site="residual"
+            adapt(model), make_saes([0, 1]), activation_site="residual"
         )
         with self.assertRaises(TypeError):
             ablator._register_sae_hooks(
@@ -114,7 +114,7 @@ class TestMultiLayerHookRegistration(unittest.TestCase):
         model = MultiLayerModel(n_layers=5)
         dataset = DatasetStub(num_samples=2)
         ablator = MultiLayerFeatureAblator(
-            model, make_saes([1, 2, 3]), activation_site="residual"
+            adapt(model), make_saes([1, 2, 3]), activation_site="residual"
         )
 
         ablator.batch_ablation_experiment(
@@ -141,7 +141,7 @@ class TestEncodePositionsOnly(unittest.TestCase):
         torch.manual_seed(7)
         model = MultiLayerModel(n_layers=1)
         sae = SparseAutoencoder(d_model=4, n_features=8)
-        ablator = FeatureAblator(model, sae, layer_idx=0, activation_site="residual")
+        ablator = FeatureAblator(adapt(model), sae, layer_idx=0, activation_site="residual")
 
         acts = torch.randn(1, 6, 4)
         positions = [1, 3, 4]
@@ -170,7 +170,7 @@ class TestEncodePositionsOnly(unittest.TestCase):
         torch.manual_seed(7)
         model = MultiLayerModel(n_layers=1)
         sae = SparseAutoencoder(d_model=4, n_features=8)
-        ablator = FeatureAblator(model, sae, layer_idx=0, activation_site="residual")
+        ablator = FeatureAblator(adapt(model), sae, layer_idx=0, activation_site="residual")
 
         acts = torch.randn(1, 5, 4)
         full = ablator.create_ablation_hook([1], positions=None, mode="replace")
@@ -184,7 +184,7 @@ class TestPerLayerDiagnostics(unittest.TestCase):
     def test_diagnostics_are_tagged_and_broken_down_by_layer(self):
         model = MultiLayerModel(n_layers=4)
         ablator = MultiLayerFeatureAblator(
-            model, make_saes([1, 2]), activation_site="residual"
+            adapt(model), make_saes([1, 2]), activation_site="residual"
         )
         acts = torch.randn(1, 4, 4)
         buffer = []
@@ -217,7 +217,7 @@ class TestPerLayerDiagnostics(unittest.TestCase):
     def test_base_fields_survive_for_untagged_diagnostics(self):
         model = MultiLayerModel(n_layers=2)
         ablator = MultiLayerFeatureAblator(
-            model, make_saes([0]), activation_site="residual"
+            adapt(model), make_saes([0]), activation_site="residual"
         )
         summary = ablator._summarize_diagnostics([])
         self.assertEqual(summary["perturb_calls"], 0)

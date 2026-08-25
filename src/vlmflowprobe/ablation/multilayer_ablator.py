@@ -23,7 +23,6 @@ against, where every blocked layer likewise operates on an already-perturbed str
 from typing import Any, Dict, List, Optional
 
 from vlmflowprobe.ablation.feature_ablator import FeatureAblator
-from vlmflowprobe.hooks import get_target_module
 
 
 class MultiLayerFeatureAblator(FeatureAblator):
@@ -31,7 +30,7 @@ class MultiLayerFeatureAblator(FeatureAblator):
 
     def __init__(
         self,
-        model,
+        adapter,
         saes: Dict[int, Any],
         activation_site: str = "attn_out",
         encode_positions_only: bool = True,
@@ -42,7 +41,7 @@ class MultiLayerFeatureAblator(FeatureAblator):
         # layer_idx is inherited but unused by this subclass; point it at the first layer so
         # anything reading it sees something coherent rather than a stale default.
         super().__init__(
-            model,
+            adapter,
             sae=saes[min(saes)],
             layer_idx=min(saes),
             activation_site=activation_site,
@@ -85,7 +84,7 @@ class MultiLayerFeatureAblator(FeatureAblator):
 
         handles = []
         for layer in sorted(features_by_layer):
-            module = get_target_module(self.model, layer, self.activation_site)
+            module = self.adapter.layer_module(layer, self.activation_site)
             handles.append(
                 module.register_forward_hook(
                     self.create_ablation_hook(

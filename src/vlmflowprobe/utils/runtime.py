@@ -1,7 +1,5 @@
 """Shared setup helpers for experiment scripts."""
 
-import os
-
 import torch
 
 from vlmflowprobe.utils.checkpoint_utils import resolve_experiment_dir
@@ -32,39 +30,41 @@ def setup_experiment(args, config):
     return experiment_dir, seed
 
 
-def load_llava_components(model_cfg, attn_implementation=None):
-    """Load LLaVA model, tokenizer, image_processor. Return (tokenizer, model, image_processor)."""
-    from llava.model.builder import load_pretrained_model
-    from llava.mm_utils import get_model_name_from_path
+def load_adapter(config):
+    """Create and load the model adapter named by ``model.adapter``."""
+    from vlmflowprobe.adapters.registry import create_adapter
 
-    model_path = os.path.expanduser(model_cfg.get("name", ""))
-    model_name = get_model_name_from_path(model_path)
-    tokenizer, model, image_processor, _ = load_pretrained_model(
-        model_path,
-        model_cfg.get("model_base"),
-        model_name,
-        device_map="auto",
-        attn_implementation=attn_implementation,
-    )
-    model.eval()
-    return tokenizer, model, image_processor
+    adapter = create_adapter(config.get("model", {}))
+    adapter.load()
+    return adapter
 
 
-def load_sae(config, model, checkpoint_path):
-    """Build SparseAutoencoder, load checkpoint, move to device/dtype. Return sae."""
+def load_sae(config, adapter, checkpoint_path):
+    """Build SparseAutoencoder, load checkpoint, move to the adapter's device.
+
+    ``d_model`` comes from the checkpoint itself (encoder weight shape) and is
+    asserted against the adapter — a mismatched SAE fails here, not layers deep
+    in a hook.
+    """
     from vlmflowprobe.core.sparse_autoencoder import SparseAutoencoder
 
-    model_cfg = config.get("model", {})
+    ckpt = torch.load(checkpoint_path, map_location="cpu")
+    state = ckpt.get("state", {}).get("sae_state", ckpt)
+    n_features, d_model = state["encoder.weight"].shape
+    if d_model != adapter.d_model:
+        raise ValueError(
+            f"SAE checkpoint {checkpoint_path} has d_model={d_model} but the "
+            f"adapter's model has d_model={adapter.d_model}"
+        )
     sae = SparseAutoencoder(
-        d_model=model_cfg.get("d_model", 4096),
-        n_features=config.get("sae", {}).get("n_features", 32768),
+        d_model=int(d_model),
+        n_features=int(n_features),
         l1_coeff=config.get("sae", {}).get("l1_coeff", 1e-3),
     )
-    ckpt = torch.load(checkpoint_path, map_location="cpu")
-    sae.load_state_dict(ckpt.get("state", {}).get("sae_state", ckpt))
+    sae.load_state_dict(state)
     train_cfg = config.get("training", {})
     sae.to(
-        device=next(model.parameters()).device,
+        device=adapter.device,
         dtype=resolve_dtype(train_cfg.get("dtype", "float32")),
     )
     sae.eval()

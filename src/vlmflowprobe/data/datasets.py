@@ -9,8 +9,8 @@ Key design choices:
 - `false option` is a deterministically sampled distractor from the closed
   color/shape vocabulary — allows `forced_choice_margin` metric to work
   without any changes to knockout_runner or feature_ablator.
-- `img_id` is the bare filename (e.g. "00000000.png") so CustomDataset can
-  construct the full path as os.path.join(image_folder, img_id).
+- `img_id` is the bare filename (e.g. "00000000.png"); `load_image` joins it
+  onto `image_folder` and the model adapter does the preprocessing.
 - task_name "CLEVRLite" hits the else-branch in CustomDataset (no bboxes
   needed), setting mask_tensor=None.
 """
@@ -47,19 +47,15 @@ class CLEVRLiteVQADataset:
         self,
         data_dir: str,
         split: str,
-        tokenizer,
-        image_processor,
-        model_config,
-        conv_mode: str = "vicuna_v1",
+        tokenizer=None,
         filter_held_out: Optional[bool] = None,
         seed: int = 42,
     ):
+        # ``tokenizer`` is only needed for attribute-token extraction; batches
+        # are built by the model adapter (vlmflowprobe.data.loading).
         self.data_dir = data_dir
         self.split = split
         self.tokenizer = tokenizer
-        self.image_processor = image_processor
-        self.model_config = model_config
-        self.conv_mode = conv_mode
         self.filter_held_out = filter_held_out
 
         questions_path = os.path.join(data_dir, f"{split}_questions.json")
@@ -98,6 +94,12 @@ class CLEVRLiteVQADataset:
     def image_folder(self) -> str:
         return os.path.join(self.data_dir, self.split, "images")
 
+    def load_image(self, line):
+        """PIL image for a question line (the adapter preprocesses it)."""
+        from PIL import Image
+
+        return Image.open(os.path.join(self.image_folder, line["img_id"])).convert("RGB")
+
     def _extract_attribute_info(self) -> None:
         """Populate attribute_tokens on each question entry."""
         for entry in self.questions:
@@ -119,10 +121,4 @@ class CLEVRLiteVQADataset:
                 seen.add(word)
             entry["attribute_tokens"] = attr_entries
 
-    def create_dataloader(self, batch_size: int = 1, num_workers: int = 0):
-        # Rewired in Phase 2: batches are built by the model adapter
-        # (vlmflowprobe.data.loading), not by a model-specific loader here.
-        raise NotImplementedError(
-            "create_dataloader moves to vlmflowprobe.data.loading (adapter-driven); "
-            "pending Phase 2 of the port"
-        )
+

@@ -6,26 +6,24 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 
-# Legacy LLaVA-repo image placeholder sentinel; dies with the Phase-2 adapter rewiring.
-IMAGE_TOKEN_INDEX = -200
-
-from vlmflowprobe.hooks import HookManager, create_activation_capture_hook, get_target_module
-from vlmflowprobe.knockout.knockout_utils import estimate_image_token_count
-from vlmflowprobe.utils import token_utils
+from vlmflowprobe.adapters.base import ModelAdapter
+from vlmflowprobe.data.loading import iter_batches
+from vlmflowprobe.hooks import HookManager, create_activation_capture_hook
+from vlmflowprobe.positions import COLLECTION_POLICY, resolve_positions
 
 
 class ActivationCollector:
     """Collects activations from a specific layer in a model."""
 
-    def __init__(self, model: torch.nn.Module, layer_idx: int, activation_site: str = "residual"):
-        self.model = model
+    def __init__(self, adapter: ModelAdapter, layer_idx: int, activation_site: str = "residual"):
+        self.adapter = adapter
         self.layer_idx = layer_idx
         self.activation_site = activation_site
-        self.hook_manager = HookManager(model)
+        self.hook_manager = HookManager(adapter.model)
         self.storage: Dict[str, torch.Tensor] = {}
 
     def register_hooks(self) -> None:
-        layer = get_target_module(self.model, self.layer_idx, self.activation_site)
+        layer = self.adapter.layer_module(self.layer_idx, self.activation_site)
         self.hook_manager.register_forward_hook(
             layer, create_activation_capture_hook(self.storage, "acts")
         )
@@ -34,29 +32,15 @@ class ActivationCollector:
         self,
         dataset,
         position_type: str = "question",
-        tokenizer=None,
         max_samples: Optional[int] = None,
-        device: Optional[str] = None,
         show_progress: bool = False,
         checkpoint_dir: Optional[str] = None,
         checkpoint_interval: int = 5000,
     ):
-        if hasattr(dataset, "create_dataloader"):
-            data_loader = dataset.create_dataloader()
-            questions = dataset.questions
-            dataset_dict = dataset.dataset_dict
-        else:
-            data_loader = dataset
-            questions = getattr(dataset, "questions", None)
-            dataset_dict = getattr(dataset, "dataset_dict", {})
-            if questions is None:
-                raise ValueError("dataset must provide questions list")
-
-        if device is None:
-            try:
-                device = next(self.model.parameters()).device
-            except StopIteration:
-                device = "cuda" if torch.cuda.is_available() else "cpu"
+        questions = getattr(dataset, "questions", None)
+        dataset_dict = getattr(dataset, "dataset_dict", {})
+        if questions is None:
+            raise ValueError("dataset must provide questions list")
 
         start_idx, offset, metadata, chunk_files = 0, 0, [], []
         if checkpoint_dir:
@@ -79,37 +63,21 @@ class ActivationCollector:
         samples_since_save = 0
         idx = start_idx
         try:
-            iterator = zip(data_loader, questions)
-            total = len(questions) if questions is not None else None
-            if max_samples is not None and total is not None:
-                total = min(total, max_samples)
-            if show_progress:
-                from tqdm import tqdm
-                iterator = tqdm(iterator, total=total, desc="Collecting activations",
-                                initial=start_idx)
+            iterator = iter_batches(
+                dataset,
+                self.adapter,
+                max_samples=max_samples,
+                show_progress=show_progress,
+                progress_desc="Collecting activations",
+            )
 
             for idx, (batch, line) in enumerate(iterator):
-                if max_samples is not None and idx >= max_samples:
-                    break
                 if idx < start_idx:
                     continue
 
-                input_ids, image_tensor, image_sizes, prompts, _ = batch
-                input_ids = input_ids.to(device)
-                image_tensor = [img.to(device) for img in image_tensor]
-
-                image_token_count = estimate_image_token_count(
-                    self.model, input_ids, image_tensor, image_sizes
-                )
-
                 self.storage.pop("acts", None)
                 with torch.no_grad():
-                    _ = self.model(
-                        input_ids=input_ids,
-                        images=image_tensor,
-                        image_sizes=image_sizes,
-                        use_cache=False,
-                    )
+                    _ = self.adapter.forward(batch)
 
                 acts = self.storage.get("acts")
                 if acts is None:
@@ -119,13 +87,8 @@ class ActivationCollector:
                     continue
 
                 question_text = dataset_dict[line["q_id"]]["question"]
-                positions = self._select_positions(
-                    position_type,
-                    input_ids,
-                    image_token_count,
-                    question_text,
-                    tokenizer,
-                    line,
+                positions = resolve_positions(
+                    position_type, batch, self.adapter, policy=COLLECTION_POLICY, line=line
                 )
                 if not positions:
                     continue
@@ -199,56 +162,6 @@ class ActivationCollector:
         if acts.ndim != 3:
             return None
         return acts[0]
-
-    def _select_positions(
-        self,
-        position_type: str,
-        input_ids: torch.Tensor,
-        image_token_count: int,
-        question_text: str,
-        tokenizer,
-        line: Dict[str, Any],
-    ) -> List[int]:
-        if position_type == "all":
-            expanded_len = input_ids.shape[-1] - 1 + image_token_count
-            return list(range(expanded_len))
-
-        question_range = token_utils.get_question_token_range(
-            input_ids[0],
-            image_token_count,
-            question_text=question_text,
-            tokenizer=tokenizer,
-            image_token_index=IMAGE_TOKEN_INDEX,
-        )
-
-        if position_type == "last":
-            ntoks = input_ids.shape[-1] + image_token_count - 1
-            return [max(0, ntoks - 1)]
-
-        if position_type == "question":
-            return question_range
-
-        if position_type == "attribute":
-            attr_positions = []
-            for attr in line.get("attribute_tokens", []):
-                attr_positions.extend(attr.get("positions", []))
-            if not question_range:
-                return []
-            start = question_range[0]
-            end = question_range[-1]
-            positions = [start + pos for pos in attr_positions]
-            positions = [pos for pos in positions if start <= pos <= end]
-            return sorted(set(positions))
-
-        if position_type == "image":
-            ids_list = input_ids[0].tolist() if input_ids.dim() > 1 else input_ids.tolist()
-            try:
-                img_placeholder_idx = ids_list.index(IMAGE_TOKEN_INDEX)
-            except ValueError:
-                return []
-            return list(range(img_placeholder_idx, img_placeholder_idx + image_token_count))
-
-        return question_range
 
 
 def reassemble_chunks(

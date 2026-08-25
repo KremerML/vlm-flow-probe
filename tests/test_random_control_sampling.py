@@ -32,7 +32,7 @@ class TestRandomControlSampling(unittest.TestCase):
             },
             "evaluation": {"logprob_normalize": True},
         }
-        return AblationExperiment(model=object(), sae=DummySAE(n_features=n_features), config=config)
+        return AblationExperiment(adapter=object(), sae=DummySAE(n_features=n_features), config=config)
 
     def test_matched_sampling_produces_distinct_sets(self):
         exp = self._make_experiment(n_features=512, n_random_sets=8)

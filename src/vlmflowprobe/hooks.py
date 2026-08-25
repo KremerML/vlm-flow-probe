@@ -38,21 +38,3 @@ def create_activation_capture_hook(storage_dict: Dict, key: str):
     def hook(module, inputs, output):
         storage_dict[key] = output
     return hook
-
-
-def get_target_module(model, layer_idx: int, activation_site: str):
-    """Navigate to the target submodule for a given layer and activation site."""
-    if hasattr(model, "model") and hasattr(model.model, "layers"):
-        layer = model.model.layers[layer_idx]
-    elif hasattr(model, "layers"):
-        layer = model.layers[layer_idx]
-    elif hasattr(model, "transformer") and hasattr(model.transformer, "h"):
-        layer = model.transformer.h[layer_idx]
-    else:
-        raise ValueError("Unsupported model type for layer access")
-    site = str(activation_site).lower()
-    if site == "attn_out" and hasattr(layer, "self_attn"):
-        return layer.self_attn
-    if site == "mlp_out" and hasattr(layer, "mlp"):
-        return layer.mlp
-    return layer

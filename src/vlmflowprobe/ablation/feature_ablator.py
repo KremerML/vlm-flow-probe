@@ -1,20 +1,13 @@
 """Feature ablation utilities."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import torch
 
-from tqdm import tqdm
-
-# Legacy LLaVA-repo image placeholder sentinel; dies with the Phase-2 adapter rewiring.
-IMAGE_TOKEN_INDEX = -200
-
-from vlmflowprobe.utils import token_utils
-from vlmflowprobe.hooks import HookManager, get_target_module
-from vlmflowprobe.knockout.knockout_utils import estimate_image_token_count, sequence_logprob
-
-from vlmflowprobe.knockout.attention_hooks import remove_wrapper_llava, set_block_attn_hooks_llava
-
+from vlmflowprobe.adapters.base import ModelAdapter, ModelBatch
+from vlmflowprobe.data.loading import iter_batches
+from vlmflowprobe.knockout.scoring import sequence_logprob
+from vlmflowprobe.positions import ABLATION_POLICY, resolve_positions
 
 # `None` is a legitimate resolved positions value meaning "every position", so a cache miss
 # needs a sentinel distinct from it.
@@ -24,12 +17,15 @@ _POSITIONS_UNCACHED = object()
 class FeatureAblator:
     """Ablates SAE features by zeroing them in the hidden state."""
 
-    def __init__(self, model, sae, layer_idx: int, activation_site: str = "residual"):
-        self.model = model
+    def __init__(self, adapter: ModelAdapter, sae, layer_idx: int, activation_site: str = "residual"):
+        self.adapter = adapter
         self.sae = sae
         self.layer_idx = layer_idx
         self.activation_site = activation_site
-        self.hook_manager = HookManager(model)
+
+    @property
+    def model(self):
+        return self.adapter.model
 
     def create_ablation_hook(
         self,
@@ -141,7 +137,7 @@ class FeatureAblator:
         Subclasses override this to hook several layers at once; the base class hooks the
         single ``self.layer_idx``.
         """
-        module = get_target_module(self.model, self.layer_idx, self.activation_site)
+        module = self.adapter.layer_module(self.layer_idx, self.activation_site)
         return [
             module.register_forward_hook(
                 self.create_ablation_hook(
@@ -186,35 +182,22 @@ class FeatureAblator:
         progress_desc: str = "Baseline",
     ) -> List[Dict[str, Any]]:
         baseline_cache: List[Dict[str, Any]] = []
-        data_loader = dataset.create_dataloader()
-        try:
-            device = next(self.model.parameters()).device
-        except StopIteration:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        iterator = zip(data_loader, dataset.questions)
-        if show_progress:
-            total = len(dataset.questions)
-            if max_samples is not None:
-                total = min(total, max_samples)
-            iterator = tqdm(iterator, total=total, desc=progress_desc)
-
-        for idx, (batch, line) in enumerate(iterator):
-            if max_samples is not None and idx >= max_samples:
-                break
-            input_ids, image_tensor, image_sizes, _, _ = batch
-            input_ids = input_ids.to(device=device)
-            image_tensor = [img.to(device=device) for img in image_tensor]
-            baseline_record = self._compute_baseline_record(
-                input_ids=input_ids,
-                image_tensor=image_tensor,
-                image_sizes=image_sizes,
-                dataset=dataset,
-                line=line,
-                logprob_normalize=logprob_normalize,
-                score_options=score_options,
+        for batch, line in iter_batches(
+            dataset,
+            self.adapter,
+            max_samples=max_samples,
+            show_progress=show_progress,
+            progress_desc=progress_desc,
+        ):
+            baseline_cache.append(
+                self._compute_baseline_record(
+                    batch=batch,
+                    dataset=dataset,
+                    line=line,
+                    logprob_normalize=logprob_normalize,
+                    score_options=score_options,
+                )
             )
-            baseline_cache.append(baseline_record)
         return baseline_cache
 
     def batch_ablation_experiment(
@@ -240,38 +223,17 @@ class FeatureAblator:
     ) -> List[dict]:
         results = []
         self._cache_misses = 0
-        data_loader = dataset.create_dataloader()
-        try:
-            device = next(self.model.parameters()).device
-        except StopIteration:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
+        tokenizer = self.adapter.tokenizer
 
-        iterator = zip(data_loader, dataset.questions)
-        if show_progress:
-            total = len(dataset.questions)
-            if max_samples is not None:
-                total = min(total, max_samples)
-            iterator = tqdm(iterator, total=total, desc=progress_desc)
-        for idx, (batch, line) in enumerate(iterator):
-            if max_samples is not None and idx >= max_samples:
-                break
-            input_ids, image_tensor, image_sizes, _, _ = batch
-            input_ids = input_ids.to(device=device)
-            image_tensor = [img.to(device=device) for img in image_tensor]
-
-            inps = {
-                "inputs": input_ids,
-                "images": image_tensor,
-                "image_sizes": image_sizes,
-                "do_sample": False,
-                "num_beams": 1,
-                "max_new_tokens": 1,
-                "use_cache": True,
-                "return_dict_in_generate": True,
-                "output_scores": True,
-                "pad_token_id": dataset.tokenizer.eos_token_id,
-            }
-
+        for idx, (batch, line) in enumerate(
+            iter_batches(
+                dataset,
+                self.adapter,
+                max_samples=max_samples,
+                show_progress=show_progress,
+                progress_desc=progress_desc,
+            )
+        ):
             baseline_record = self._resolve_cached_baseline(
                 baseline_cache=baseline_cache,
                 sample_idx=idx,
@@ -289,9 +251,7 @@ class FeatureAblator:
                             f"(q_id={line.get('q_id')!r}); cache and dataloader are out of sync"
                         )
                 baseline_record = self._compute_baseline_record(
-                    input_ids=input_ids,
-                    image_tensor=image_tensor,
-                    image_sizes=image_sizes,
+                    batch=batch,
                     dataset=dataset,
                     line=line,
                     logprob_normalize=logprob_normalize,
@@ -306,14 +266,13 @@ class FeatureAblator:
 
             gt_token_id = self._get_answer_token_id(
                 dataset.dataset_dict[line["q_id"]].get("answer", ""),
-                dataset.tokenizer,
+                tokenizer,
             )
             true_option = dataset.dataset_dict[line["q_id"]].get("true option", "").strip()
             false_option = dataset.dataset_dict[line["q_id"]].get("false option", "").strip()
 
-            # Resolving positions runs prepare_inputs_labels_for_multimodal (a full vision-tower
-            # pass), and the answer only depends on the sample, not the condition — so a caller
-            # sweeping many conditions can resolve once and pass the result in.
+            # Positions depend only on the sample, not the condition — so a caller sweeping
+            # many conditions can resolve once and pass the result in.
             positions = self._resolve_cached_positions(
                 positions_cache=positions_cache,
                 sample_idx=idx,
@@ -325,14 +284,7 @@ class FeatureAblator:
                         f"positions cache miss at sample {idx} "
                         f"(q_id={line.get('q_id')!r}); cache and dataloader are out of sync"
                     )
-                positions = self._resolve_positions(
-                    position_type,
-                    input_ids,
-                    image_tensor,
-                    image_sizes,
-                    dataset,
-                    line,
-                )
+                positions = self._resolve_positions(batch, position_type, line)
             hooks: List[Any] = []
             sample_diagnostics: List[Dict[str, float]] = []
             if apply_sae:
@@ -345,39 +297,21 @@ class FeatureAblator:
                     operation_scale=operation_scale,
                     diagnostics_buffer=sample_diagnostics,
                 )
-            attn_hooks = None
+            attn_handle = None
             resolved_block_config = attn_block_config
             if attn_block_resolver is not None:
-                resolved_block_config = attn_block_resolver(
-                    input_ids,
-                    image_tensor,
-                    image_sizes,
-                    dataset,
-                    line,
-                )
+                resolved_block_config = attn_block_resolver(batch, dataset, line)
             if resolved_block_config:
-                attn_hooks = set_block_attn_hooks_llava(self.model, resolved_block_config)
+                attn_handle = self.adapter.install_attention_knockout(resolved_block_config)
             try:
                 with torch.inference_mode():
-                    ablated = self.model.generate(**inps)
+                    ablated = self.adapter.generate(batch, max_new_tokens=1)
                     if score_options:
                         ablated_true_lp = sequence_logprob(
-                            self.model,
-                            dataset.tokenizer,
-                            input_ids,
-                            image_tensor,
-                            image_sizes,
-                            true_option,
-                            normalize=logprob_normalize,
+                            self.adapter, batch, true_option, normalize=logprob_normalize
                         )
                         ablated_false_lp = sequence_logprob(
-                            self.model,
-                            dataset.tokenizer,
-                            input_ids,
-                            image_tensor,
-                            image_sizes,
-                            false_option,
-                            normalize=logprob_normalize,
+                            self.adapter, batch, false_option, normalize=logprob_normalize
                         )
                     else:
                         ablated_true_lp = None
@@ -385,15 +319,14 @@ class FeatureAblator:
             finally:
                 for hook in hooks:
                     hook.remove()
-                if attn_hooks:
-                    remove_wrapper_llava(self.model, attn_hooks)
+                if attn_handle is not None:
+                    self.adapter.remove_attention_knockout(attn_handle)
 
-            ablated_pred = dataset.tokenizer.batch_decode(
-                ablated["sequences"], skip_special_tokens=True
+            ablated_pred = tokenizer.batch_decode(
+                ablated.sequences, skip_special_tokens=True
             )[0].strip().lower()
-            ablated_logits = ablated["scores"][0]
-            ablated_probs = torch.softmax(ablated_logits, dim=-1)
-            ablated_prob = ablated_probs[0][ablated["sequences"][:, 0]].item()
+            ablated_probs = torch.softmax(ablated.first_token_scores, dim=-1)
+            ablated_prob = ablated_probs[0][ablated.sequences[:, 0]].item()
             ablated_gt_prob = (
                 ablated_probs[0][gt_token_id].item() if gt_token_id is not None else None
             )
@@ -434,38 +367,24 @@ class FeatureAblator:
 
     def _compute_baseline_record(
         self,
-        input_ids,
-        image_tensor,
-        image_sizes,
+        batch: ModelBatch,
         dataset,
         line: Dict[str, Any],
         logprob_normalize: bool = True,
         score_options: bool = True,
     ) -> Dict[str, Any]:
-        inps = {
-            "inputs": input_ids,
-            "images": image_tensor,
-            "image_sizes": image_sizes,
-            "do_sample": False,
-            "num_beams": 1,
-            "max_new_tokens": 1,
-            "use_cache": True,
-            "return_dict_in_generate": True,
-            "output_scores": True,
-            "pad_token_id": dataset.tokenizer.eos_token_id,
-        }
+        tokenizer = self.adapter.tokenizer
         with torch.inference_mode():
-            baseline = self.model.generate(**inps)
+            baseline = self.adapter.generate(batch, max_new_tokens=1)
 
-        baseline_pred = dataset.tokenizer.batch_decode(
-            baseline["sequences"], skip_special_tokens=True
+        baseline_pred = tokenizer.batch_decode(
+            baseline.sequences, skip_special_tokens=True
         )[0].strip().lower()
-        baseline_logits = baseline["scores"][0]
-        baseline_probs = torch.softmax(baseline_logits, dim=-1)
-        baseline_prob = baseline_probs[0][baseline["sequences"][:, 0]].item()
+        baseline_probs = torch.softmax(baseline.first_token_scores, dim=-1)
+        baseline_prob = baseline_probs[0][baseline.sequences[:, 0]].item()
         gt_token_id = self._get_answer_token_id(
             dataset.dataset_dict[line["q_id"]].get("answer", ""),
-            dataset.tokenizer,
+            tokenizer,
         )
         baseline_gt_prob = (
             baseline_probs[0][gt_token_id].item() if gt_token_id is not None else None
@@ -475,22 +394,10 @@ class FeatureAblator:
             true_option = dataset.dataset_dict[line["q_id"]].get("true option", "").strip()
             false_option = dataset.dataset_dict[line["q_id"]].get("false option", "").strip()
             baseline_true_lp = sequence_logprob(
-                self.model,
-                dataset.tokenizer,
-                input_ids,
-                image_tensor,
-                image_sizes,
-                true_option,
-                normalize=logprob_normalize,
+                self.adapter, batch, true_option, normalize=logprob_normalize
             )
             baseline_false_lp = sequence_logprob(
-                self.model,
-                dataset.tokenizer,
-                input_ids,
-                image_tensor,
-                image_sizes,
-                false_option,
-                normalize=logprob_normalize,
+                self.adapter, batch, false_option, normalize=logprob_normalize
             )
         else:
             baseline_true_lp = None
@@ -511,6 +418,11 @@ class FeatureAblator:
             "baseline_false_logprob": baseline_false_lp,
             "baseline_margin": baseline_margin,
         }
+
+    def _resolve_positions(self, batch: ModelBatch, position_type: str, line: dict):
+        return resolve_positions(
+            position_type, batch, self.adapter, policy=ABLATION_POLICY, line=line
+        )
 
     @staticmethod
     def _resolve_cached_positions(
@@ -603,61 +515,6 @@ class FeatureAblator:
             "mean_relative_perturbation": sum(rel_perturb) / len(rel_perturb) if rel_perturb else None,
         }
 
-    def _resolve_positions(
-        self,
-        position_type: str,
-        input_ids,
-        image_tensor,
-        image_sizes,
-        dataset,
-        line,
-    ) -> Optional[List[int]]:
-        if position_type in (None, "all"):
-            return None
-
-        question_text = dataset.dataset_dict[line["q_id"]].get("question", "")
-        image_token_count = estimate_image_token_count(
-            self.model, input_ids, image_tensor, image_sizes
-        )
-        question_range = token_utils.get_question_token_range(
-            input_ids[0],
-            image_token_count,
-            question_text=question_text,
-            tokenizer=dataset.tokenizer,
-            image_token_index=IMAGE_TOKEN_INDEX,
-        )
-        if not question_range:
-            return []
-
-        if position_type == "question":
-            return question_range
-
-        if position_type == "last":
-            ntoks = input_ids.shape[-1] + image_token_count - 1
-            return [max(0, ntoks - 1)]
-
-        if position_type == "attribute":
-            attr_positions = []
-            for attr in line.get("attribute_tokens", []):
-                attr_positions.extend(attr.get("positions", []))
-            if not attr_positions:
-                return question_range
-            start = question_range[0]
-            end = question_range[-1]
-            positions = [start + pos for pos in attr_positions]
-            positions = [pos for pos in positions if start <= pos <= end]
-            return sorted(set(positions))
-
-        if position_type == "image":
-            ids_list = input_ids[0].tolist() if input_ids.dim() > 1 else input_ids.tolist()
-            try:
-                img_placeholder_idx = ids_list.index(IMAGE_TOKEN_INDEX)
-            except ValueError:
-                return []
-            return list(range(img_placeholder_idx, img_placeholder_idx + image_token_count))
-
-        return question_range
-
     @staticmethod
     def _apply_positions(original: torch.Tensor, replaced: torch.Tensor, positions: Optional[List[int]]):
         if not positions:
@@ -674,4 +531,3 @@ class FeatureAblator:
         if not token_ids:
             return None
         return token_ids[0]
-

@@ -9,8 +9,10 @@ from tqdm import tqdm
 
 from vlmflowprobe.ablation import statistical_analysis
 from vlmflowprobe.ablation import metrics as eval_metrics
-from vlmflowprobe.knockout import knockout_utils
-from vlmflowprobe.knockout.knockout_utils import sequence_logprob as _sequence_logprob
+from vlmflowprobe.adapters.base import ModelAdapter
+from vlmflowprobe.data.loading import iter_batches
+from vlmflowprobe.knockout.block_config import build_block_config, flow_block_pairs, flow_target
+from vlmflowprobe.knockout.scoring import sequence_logprob
 
 
 def _mean(values: Iterable[float]) -> float:
@@ -51,11 +53,8 @@ def _load_checkpoint(checkpoint_path: str) -> Tuple[set, List[Dict]]:
 
 
 def run_knockout_sweep(
-    model,
-    tokenizer,
-    dataset_dict: Dict,
-    questions: List[Dict],
-    data_loader,
+    adapter: ModelAdapter,
+    dataset,
     flows: List[str],
     window: int = 1,
     max_samples: Optional[int] = None,
@@ -64,8 +63,9 @@ def run_knockout_sweep(
     progress_desc: str = "Knockout sweep",
     checkpoint_path: Optional[str] = None,
 ) -> Tuple[List[Dict], List[Dict]]:
-    num_layers = model.config.num_hidden_layers
+    num_layers = adapter.n_layers
     summaries: List[Dict] = []
+    dataset_dict = dataset.dataset_dict
 
     # ── Checkpoint resume ───────────────────────────────────────────────────
     done_ids: set = set()
@@ -80,7 +80,7 @@ def run_knockout_sweep(
             print(f"[checkpoint] Starting fresh. Checkpoint: {checkpoint_path}")
         checkpoint_file = open(checkpoint_path, "a", encoding="utf-8")  # noqa: SIM115
 
-    total = len(questions)
+    total = len(dataset.questions)
     if max_samples is not None:
         total = min(total, max_samples)
 
@@ -88,14 +88,7 @@ def run_knockout_sweep(
     progress = tqdm(total=total_steps, desc=progress_desc, unit="step")
 
     try:
-        for idx, (batch, line) in enumerate(zip(data_loader, questions)):
-            if max_samples is not None and idx >= max_samples:
-                break
-
-            input_ids, image_tensor, image_sizes, _, _ = batch
-            input_ids = input_ids.to(device=next(model.parameters()).device)
-            image_tensor = [img.to(device=next(model.parameters()).device) for img in image_tensor]
-
+        for batch, line in iter_batches(dataset, adapter, max_samples=max_samples):
             question_id = line["q_id"]
 
             # ── Skip already-checkpointed samples ───────────────────────────
@@ -104,28 +97,14 @@ def run_knockout_sweep(
                 continue
 
             detail = dataset_dict[question_id]
-            question_text = detail.get("question", "")
             true_option = detail.get("true option", "").strip()
             false_option = detail.get("false option", "").strip()
             if not true_option or not false_option:
                 progress.update(num_layers * max(1, len(flows)))
                 continue
 
-            inputs_embeds_shape = knockout_utils.estimate_inputs_embeds_shape(
-                model, input_ids, image_tensor, image_sizes
-            )
-            if inputs_embeds_shape is None:
-                progress.update(num_layers * max(1, len(flows)))
-                continue
-
-            base_true_lp = _sequence_logprob(
-                model, tokenizer, input_ids, image_tensor, image_sizes,
-                true_option, normalize=normalize_logprob,
-            )
-            base_false_lp = _sequence_logprob(
-                model, tokenizer, input_ids, image_tensor, image_sizes,
-                false_option, normalize=normalize_logprob,
-            )
+            base_true_lp = sequence_logprob(adapter, batch, true_option, normalize=normalize_logprob)
+            base_false_lp = sequence_logprob(adapter, batch, false_option, normalize=normalize_logprob)
             if base_true_lp is None or base_false_lp is None:
                 progress.update(num_layers * max(1, len(flows)))
                 continue
@@ -136,28 +115,21 @@ def run_knockout_sweep(
 
             sample_rows: List[Dict] = []
             for flow in flows:
-                source_range, target_range = knockout_utils.resolve_flow_ranges(
-                    flow, input_ids, inputs_embeds_shape,
-                    question_text, tokenizer,
-                )
-                if not source_range or not target_range:
+                src_tgt_pairs = flow_block_pairs(flow, batch, adapter)
+                if not src_tgt_pairs:
                     progress.update(num_layers)
                     continue
-                src_tgt_pairs = [(tgt, src) for src in source_range for tgt in target_range]
+                target = flow_target(flow)
 
                 for layer in range(num_layers):
-                    block_config = knockout_utils.build_block_config(
-                        layer, num_layers, window, src_tgt_pairs
+                    block_config = build_block_config(layer, num_layers, window, src_tgt_pairs)
+                    new_true_lp = sequence_logprob(
+                        adapter, batch, true_option, normalize=normalize_logprob,
+                        block_config=block_config, flow_target=target,
                     )
-                    new_true_lp = _sequence_logprob(
-                        model, tokenizer, input_ids, image_tensor, image_sizes,
-                        true_option, normalize=normalize_logprob,
-                        block_config=block_config,
-                    )
-                    new_false_lp = _sequence_logprob(
-                        model, tokenizer, input_ids, image_tensor, image_sizes,
-                        false_option, normalize=normalize_logprob,
-                        block_config=block_config,
+                    new_false_lp = sequence_logprob(
+                        adapter, batch, false_option, normalize=normalize_logprob,
+                        block_config=block_config, flow_target=target,
                     )
                     if new_true_lp is None or new_false_lp is None:
                         progress.update(1)

@@ -35,8 +35,8 @@ def _warn_uniform_fallback(message: str) -> None:
 class AblationExperiment:
     """Runs ablation studies for identified features."""
 
-    def __init__(self, model, sae, config):
-        self.model = model
+    def __init__(self, adapter, sae, config):
+        self.adapter = adapter
         self.sae = sae
         self.config = config
 
@@ -56,7 +56,7 @@ class AblationExperiment:
         random_cfg = self.config.get("random_control", {})
 
         ablator = FeatureAblator(
-            self.model,
+            self.adapter,
             self.sae,
             model_cfg.get("target_layer", 0),
             activation_site=model_cfg.get("activation_site", "residual"),

@@ -29,10 +29,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from vlmflowprobe.ablation.ablation_experiments import AblationExperiment
 from vlmflowprobe.ablation.multilayer_ablator import MultiLayerFeatureAblator
 from vlmflowprobe.ablation.sample_cache import baseline_cache, positions_cache
-from vlmflowprobe.knockout.knockout_utils import (
+from vlmflowprobe.knockout.block_config import (
     build_block_config_for_layers,
-    estimate_inputs_embeds_shape,
-    resolve_flow_ranges,
+    flow_block_pairs,
 )
 
 # Condition kinds.
@@ -96,8 +95,8 @@ class Condition:
 class MultiLayerAblationExperiment:
     """Runs multi-layer conditions and their joint random controls."""
 
-    def __init__(self, model, saes, catalogs, feature_stats, config):
-        self.model = model
+    def __init__(self, adapter, saes, catalogs, feature_stats, config):
+        self.adapter = adapter
         self.saes = {int(k): v for k, v in saes.items()}
         self.catalogs = {int(k): [int(f) for f in v] for k, v in catalogs.items()}
         self.feature_stats = {
@@ -119,7 +118,7 @@ class MultiLayerAblationExperiment:
         )
 
         self.ablator = MultiLayerFeatureAblator(
-            model,
+            adapter,
             self.saes,
             activation_site=self.activation_site,
             encode_positions_only=bool(ml_cfg.get("encode_positions_only", True)),
@@ -287,26 +286,13 @@ class MultiLayerAblationExperiment:
         Mirrors ``tools/knockout_sae_pipeline._make_attn_block_resolver`` but takes the
         layer set directly instead of a symmetric window around a centre layer.
         """
-        model = self.model
+        adapter = self.adapter
         block_layers = tuple(int(l) for l in layers)
 
-        def resolver(input_ids, image_tensor, image_sizes, dataset, line):
-            inputs_embeds_shape = estimate_inputs_embeds_shape(
-                model, input_ids, image_tensor, image_sizes
-            )
-            if inputs_embeds_shape is None:
+        def resolver(batch, dataset, line):
+            pairs = flow_block_pairs(flow, batch, adapter)
+            if not pairs:
                 return None
-            question_text = dataset.dataset_dict[line["q_id"]].get("question", "")
-            source_range, target_range = resolve_flow_ranges(
-                flow,
-                input_ids,
-                inputs_embeds_shape,
-                question_text,
-                dataset.tokenizer,
-            )
-            if not source_range or not target_range:
-                return None
-            pairs = [(tgt, src) for src in source_range for tgt in target_range]
             return build_block_config_for_layers(block_layers, pairs)
 
         return resolver

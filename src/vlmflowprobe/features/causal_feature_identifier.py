@@ -15,12 +15,9 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import torch
 
-# Legacy LLaVA-repo image placeholder sentinel; dies with the Phase-2 adapter rewiring.
-IMAGE_TOKEN_INDEX = -200
-
-from vlmflowprobe.hooks import get_target_module
-from vlmflowprobe.knockout.knockout_utils import estimate_image_token_count
-from vlmflowprobe.utils import token_utils
+from vlmflowprobe.adapters.base import ModelAdapter
+from vlmflowprobe.data.loading import iter_batches
+from vlmflowprobe.positions import COLLECTION_POLICY, resolve_positions
 
 
 class CausalFeatureIdentifier:
@@ -29,13 +26,13 @@ class CausalFeatureIdentifier:
     def __init__(
         self,
         sae: torch.nn.Module,
-        model: torch.nn.Module,
+        adapter: ModelAdapter,
         dataset,
         layer_idx: int,
         activation_site: str = "attn_out",
     ):
         self.sae = sae
-        self.model = model
+        self.adapter = adapter
         self.dataset = dataset
         self.layer_idx = layer_idx
         self.activation_site = activation_site
@@ -68,12 +65,12 @@ class CausalFeatureIdentifier:
             Dict mapping feature index to stats dict with keys:
             causal_score, activation_mean, gradient_mean.
         """
-        tokenizer = self.dataset.tokenizer
-        device = next(self.model.parameters()).device
+        tokenizer = self.adapter.tokenizer
+        model = self.adapter.model
 
-        self.model.requires_grad_(False)
+        model.requires_grad_(False)
         self.sae.requires_grad_(False)
-        self.model.eval()
+        model.eval()
         self.sae.eval()
 
         n_features = self.sae.n_features
@@ -83,23 +80,13 @@ class CausalFeatureIdentifier:
         n_processed = 0
         n_skipped = 0
 
-        data_loader = self.dataset.create_dataloader()
-        iterator = zip(data_loader, self.dataset.questions)
-        total = len(self.dataset.questions)
-        if max_samples is not None:
-            total = min(total, max_samples)
-        if show_progress:
-            from tqdm import tqdm
-            iterator = tqdm(iterator, total=total, desc="Causal scoring")
-
-        for idx, (batch, line) in enumerate(iterator):
-            if max_samples is not None and idx >= max_samples:
-                break
-
-            input_ids, image_tensor, image_sizes, _, _ = batch
-            input_ids = input_ids.to(device)
-            image_tensor = [img.to(device) for img in image_tensor]
-
+        for batch, line in iter_batches(
+            self.dataset,
+            self.adapter,
+            max_samples=max_samples,
+            show_progress=show_progress,
+            progress_desc="Causal scoring",
+        ):
             detail = self.dataset.dataset_dict[line["q_id"]]
             true_answer = detail.get("true option", detail.get("answer", "")).strip()
             false_answer = detail.get("false option", "").strip()
@@ -116,14 +103,8 @@ class CausalFeatureIdentifier:
             true_target_id = true_ids[0]
             false_target_id = false_ids[0] if false_ids else None
 
-            image_token_count = estimate_image_token_count(
-                self.model, input_ids, image_tensor, image_sizes
-            )
-
-            question_text = detail["question"]
-            positions = self._resolve_positions(
-                position_type, input_ids, image_token_count,
-                question_text, tokenizer,
+            positions = resolve_positions(
+                position_type, batch, self.adapter, policy=COLLECTION_POLICY, line=line
             )
 
             features_buffer: Dict[str, Any] = {}
@@ -147,21 +128,12 @@ class CausalFeatureIdentifier:
                     return (recon,) + output[1:]
                 return recon
 
-            layer_module = get_target_module(
-                self.model, self.layer_idx, self.activation_site
-            )
+            layer_module = self.adapter.layer_module(self.layer_idx, self.activation_site)
             handle = layer_module.register_forward_hook(sae_hook)
 
             try:
                 with torch.enable_grad():
-                    outputs = self.model(
-                        input_ids=input_ids,
-                        images=image_tensor,
-                        image_sizes=image_sizes,
-                        use_cache=False,
-                    )
-
-                    logits = outputs.logits[0]
+                    logits = self.adapter.forward(batch)[0]
                     true_logit = logits[-1, true_target_id]
 
                     if target == "margin" and false_target_id is not None:
@@ -213,7 +185,7 @@ class CausalFeatureIdentifier:
                 raise
             finally:
                 handle.remove()
-                self.model.zero_grad(set_to_none=True)
+                model.zero_grad(set_to_none=True)
                 features_buffer.clear()
                 torch.cuda.empty_cache()
 
@@ -283,45 +255,6 @@ class CausalFeatureIdentifier:
         path = os.path.join(output_dir, "causal_feature_catalog.json")
         catalog.export_to_json(path)
         return path
-
-    def _resolve_positions(
-        self,
-        position_type: str,
-        input_ids: torch.Tensor,
-        image_token_count: int,
-        question_text: str,
-        tokenizer,
-    ) -> List[int]:
-        if position_type == "all":
-            expanded_len = input_ids.shape[-1] - 1 + image_token_count
-            return list(range(expanded_len))
-
-        question_range = token_utils.get_question_token_range(
-            input_ids[0],
-            image_token_count,
-            question_text=question_text,
-            tokenizer=tokenizer,
-            image_token_index=IMAGE_TOKEN_INDEX,
-        )
-
-        if position_type == "last":
-            ntoks = input_ids.shape[-1] + image_token_count - 1
-            return [max(0, ntoks - 1)]
-
-        if position_type == "question":
-            return question_range
-
-        if position_type == "image":
-            ids_list = (
-                input_ids[0].tolist() if input_ids.dim() > 1 else input_ids.tolist()
-            )
-            try:
-                img_idx = ids_list.index(IMAGE_TOKEN_INDEX)
-            except ValueError:
-                return []
-            return list(range(img_idx, img_idx + image_token_count))
-
-        return question_range
 
 
 def _percentile_stats(arr: np.ndarray) -> Dict[str, float]:

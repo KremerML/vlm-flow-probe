@@ -22,7 +22,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional
 
-from tqdm import tqdm
+from vlmflowprobe.data.loading import iter_batches
 
 
 @dataclass
@@ -53,35 +53,18 @@ def build_sample_cache(
     Reuses ``FeatureAblator._compute_baseline_record`` and ``_resolve_positions`` so the
     cached values are identical to what an uncached run would compute inline.
     """
-    device = _model_device(ablator.model)
     records: List[SampleRecord] = []
 
-    iterator = zip(dataset.create_dataloader(), dataset.questions)
-    if show_progress:
-        total = len(dataset.questions)
-        if max_samples is not None:
-            total = min(total, max_samples)
-        iterator = tqdm(iterator, total=total, desc=progress_desc)
-
-    for idx, (batch, line) in enumerate(iterator):
-        if max_samples is not None and idx >= max_samples:
-            break
-        input_ids, image_tensor, image_sizes, _, _ = batch
-        input_ids = input_ids.to(device=device)
-        image_tensor = [img.to(device=device) for img in image_tensor]
-
-        positions = ablator._resolve_positions(
-            position_type,
-            input_ids,
-            image_tensor,
-            image_sizes,
-            dataset,
-            line,
-        )
+    for batch, line in iter_batches(
+        dataset,
+        ablator.adapter,
+        max_samples=max_samples,
+        show_progress=show_progress,
+        progress_desc=progress_desc,
+    ):
+        positions = ablator._resolve_positions(batch, position_type, line)
         baseline = ablator._compute_baseline_record(
-            input_ids=input_ids,
-            image_tensor=image_tensor,
-            image_sizes=image_sizes,
+            batch=batch,
             dataset=dataset,
             line=line,
             logprob_normalize=logprob_normalize,
@@ -121,11 +104,3 @@ def load_sample_cache(path: str) -> List[SampleRecord]:
         payload = json.load(handle)
     return [SampleRecord(**record) for record in payload["records"]]
 
-
-def _model_device(model):
-    try:
-        return next(model.parameters()).device
-    except StopIteration:
-        import torch
-
-        return "cuda" if torch.cuda.is_available() else "cpu"

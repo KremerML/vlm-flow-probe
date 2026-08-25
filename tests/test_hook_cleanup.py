@@ -1,52 +1,22 @@
+"""Interventions must clean up their hooks when the forward pass raises.
+
+The three failure surfaces: the activation collector's capture hook, the
+feature ablator's SAE hooks, and the attention-knockout install around
+sequence scoring. Each test forces an exception mid-flight and asserts the
+model is left unhooked (or the knockout removed) afterwards.
+"""
+
 import unittest
-import importlib
-import sys
-import types
 from types import SimpleNamespace
-from unittest.mock import patch
 
 import torch
 from torch import nn
 
+from tests.stubs import DatasetStub, adapt
 from vlmflowprobe.ablation.feature_ablator import FeatureAblator
-from vlmflowprobe.data.collection import ActivationCollector
 from vlmflowprobe.core.sparse_autoencoder import SparseAutoencoder
-
-
-class _DatasetStub:
-    def __init__(self, tokenizer):
-        self.tokenizer = tokenizer
-        self.questions = [{"q_id": "q1", "attribute_tokens": []}]
-        self.dataset_dict = {
-            "q1": {
-                "question": "what color is it",
-                "answer": "yes",
-                "true option": "yes",
-                "false option": "no",
-            }
-        }
-        self._batch = (
-            torch.tensor([[1, 2, 3]], dtype=torch.long),
-            [torch.zeros(1, 3, 4, 4)],
-            [(4, 4)],
-            "",
-            torch.zeros(1, 3, 4, 4),
-        )
-
-    def create_dataloader(self):
-        return [self._batch]
-
-
-class _TokenizerStub:
-    eos_token_id = 0
-
-    @staticmethod
-    def encode(text, add_special_tokens=False):
-        return [1]
-
-    @staticmethod
-    def batch_decode(sequences, skip_special_tokens=True):
-        return ["yes"]
+from vlmflowprobe.data.collection import ActivationCollector
+from vlmflowprobe.knockout.scoring import sequence_logprob
 
 
 class _ExplodingCollectorModel(nn.Module):
@@ -55,7 +25,7 @@ class _ExplodingCollectorModel(nn.Module):
         self.embedding = nn.Embedding(16, 4)
         self.layers = nn.ModuleList([nn.Linear(4, 4)])
 
-    def forward(self, input_ids=None, images=None, image_sizes=None, use_cache=False):
+    def forward(self, input_ids=None, use_cache=False, **kwargs):
         x = self.embedding(input_ids)
         _ = self.layers[0](x)
         raise RuntimeError("collector failure")
@@ -68,7 +38,7 @@ class _ExplodingAblationModel(nn.Module):
         self.layers = nn.ModuleList([nn.Linear(4, 4)])
         self._gen_calls = 0
 
-    def forward(self, input_ids=None, images=None, image_sizes=None, use_cache=False):
+    def forward(self, input_ids=None, use_cache=False, **kwargs):
         x = self.embedding(input_ids)
         x = self.layers[0](x)
         logits = torch.zeros(1, x.shape[1], 64, device=x.device, dtype=x.dtype)
@@ -87,28 +57,28 @@ class _ExplodingAblationModel(nn.Module):
 class _ExplodingKnockoutModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.proj = nn.Linear(1, 1)
+        self.layers = nn.ModuleList([nn.Linear(4, 4)])
 
-    def forward(self, input_ids=None, images=None, image_sizes=None, use_cache=False):
+    def forward(self, input_ids=None, use_cache=False, **kwargs):
         raise RuntimeError("knockout failure")
 
 
 class TestHookCleanup(unittest.TestCase):
     def test_activation_collector_removes_hook_on_exception(self):
         model = _ExplodingCollectorModel()
-        dataset = _DatasetStub(_TokenizerStub())
-        collector = ActivationCollector(model, layer_idx=0, activation_site="residual")
+        dataset = DatasetStub(num_samples=1)
+        collector = ActivationCollector(adapt(model), layer_idx=0, activation_site="residual")
 
         with self.assertRaises(RuntimeError):
-            collector.collect_from_dataset(dataset, position_type="question", tokenizer=None, max_samples=1)
+            collector.collect_from_dataset(dataset, position_type="question", max_samples=1)
 
         self.assertEqual(len(model.layers[0]._forward_hooks), 0)
 
     def test_feature_ablator_removes_hook_on_exception(self):
         model = _ExplodingAblationModel()
         sae = SparseAutoencoder(d_model=4, n_features=8)
-        ablator = FeatureAblator(model, sae, layer_idx=0, activation_site="residual")
-        dataset = _DatasetStub(_TokenizerStub())
+        ablator = FeatureAblator(adapt(model), sae, layer_idx=0, activation_site="residual")
+        dataset = DatasetStub(num_samples=1)
 
         with self.assertRaises(RuntimeError):
             ablator.batch_ablation_experiment(
@@ -120,33 +90,23 @@ class TestHookCleanup(unittest.TestCase):
 
         self.assertEqual(len(model.layers[0]._forward_hooks), 0)
 
-    def test_knockout_logprob_removes_attn_hooks_on_exception(self):
-        model = _ExplodingKnockoutModel()
-        tokenizer = _TokenizerStub()
-        called = []
+    def test_sequence_logprob_removes_knockout_on_exception(self):
+        adapter = adapt(_ExplodingKnockoutModel())
+        batch = adapter.build_inputs("what color is it")
 
-        from vlmflowprobe.knockout import knockout_utils, attention_hooks
+        with self.assertRaises(RuntimeError):
+            sequence_logprob(
+                adapter,
+                batch,
+                answer_text="yes",
+                normalize=True,
+                block_config={0: [(0, 0)]},
+            )
 
-        with patch.object(attention_hooks, "set_block_attn_hooks_llava", return_value="hooks"), patch.object(
-            attention_hooks,
-            "remove_wrapper_llava",
-            side_effect=lambda m, h: called.append((m, h)),
-        ):
-            with self.assertRaises(RuntimeError):
-                knockout_utils.sequence_logprob(
-                    model=model,
-                    tokenizer=tokenizer,
-                    input_ids=torch.tensor([[1, 2]], dtype=torch.long),
-                    image_tensor=[torch.zeros(1, 3, 4, 4)],
-                    image_sizes=[(4, 4)],
-                    answer_text="yes",
-                    normalize=True,
-                    block_config={0: [(0, 0)]},
-                )
-
-        self.assertEqual(len(called), 1)
-        self.assertIs(called[0][0], model)
-        self.assertEqual(called[0][1], "hooks")
+        adapter.assert_knockouts_balanced()
+        installs = [e for e in adapter.knockout_log if e[0] == "install"]
+        self.assertEqual(len(installs), 1)
+        self.assertEqual(installs[0][2], {0: [(0, 0)]})
 
 
 if __name__ == "__main__":
