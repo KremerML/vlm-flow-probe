@@ -259,14 +259,22 @@ def stage2(adapter, dataset, report):
             check.add(f"{flow}: Spearman >= 0.7 vs n=7084 profile (n=10 run, no n=10 reference)",
                       rho_full >= 0.7, f"rho = {rho_full:.4f}")
 
-    # Structural invariant: Image->Question knockout at the last layer cannot
-    # affect anything downstream, so its drop is exactly 0 by construction.
+    # Last-layer sanity. The archive docs claim Image->Question knockout at
+    # layer 31 is exactly 0 -- true only when the question span excludes the
+    # final token (GQA's sublist match). CLEVR-Lite's span is the fallback
+    # through "ASSISTANT:", whose last position predicts the first answer
+    # token, so blocking it at L31 has a small real effect: the archive itself
+    # recorded -0.0025 (n=7084) / -0.0034 (n=10). Assert near-zero and close
+    # to the archived n=10 value.
     iq_new = {r["layer"]: r for r in summaries if r["flow"] == "Image->Question"}
+    iq_ref = {r["layer"]: r for r in ref10 if r["flow"] == "Image->Question"}
     last_layer = max(iq_new) if iq_new else None
     if last_layer is not None:
         drop = iq_new[last_layer]["mean_margin_drop"]
-        check.add(f"Image->Question layer {last_layer} drop is exactly 0", drop == 0.0,
-                  f"drop = {drop}")
+        ref_drop = iq_ref.get(last_layer, {}).get("mean_margin_drop", 0.0)
+        check.add(f"Image->Question layer {last_layer} drop near zero and near archived",
+                  abs(drop) < 0.02 and abs(drop - ref_drop) < 0.01,
+                  f"drop = {drop:.5f} (archived n=10: {ref_drop:.5f})")
     return stage
 
 
