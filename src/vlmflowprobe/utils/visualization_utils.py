@@ -2,11 +2,18 @@
 
 from typing import Dict
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 
 def plot_ablation_comparison(results_dict: Dict[str, Dict], save_path: str) -> None:
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        import warnings
+
+        warnings.warn(
+            "matplotlib not installed (pip install 'vlm-flow-probe[plots]'); skipping plot"
+        )
+        return None
+
     labels = ["baseline", "binding", "random"]
     values = [
         results_dict.get("baseline", {}).get("baseline_accuracy", 0.0),

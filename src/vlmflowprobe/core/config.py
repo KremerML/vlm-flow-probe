@@ -39,7 +39,10 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "benchmark": False,
     },
     "experiment": {
-        "output_dir": "output/experiments/exp_default",
+        # output_dir wins over output_base/name when set; the archive shipped a
+        # non-null default here that silently swallowed experiment.name unless
+        # configs remembered to set output_dir: null. Default is now None.
+        "output_dir": None,
         "output_base": "output/experiments",
         "name": "experiment",
         "use_timestamp": False,
