@@ -1,0 +1,913 @@
+{
+ "stages": [
+  {
+   "stage": "0-geometry",
+   "checks": [
+    {
+     "name": "sample order matches cache",
+     "passed": true,
+     "detail": "256/256 in order"
+    },
+    {
+     "name": "prompt strings byte-exact",
+     "passed": true,
+     "detail": "256/256"
+    },
+    {
+     "name": "576 image tokens everywhere",
+     "passed": true,
+     "detail": "256/256"
+    },
+    {
+     "name": "question spans exactly equal archived positions",
+     "passed": true,
+     "detail": "256/256"
+    }
+   ]
+  },
+  {
+   "stage": "1-baselines",
+   "checks": [
+    {
+     "name": "margin correlation r >= 0.999",
+     "passed": true,
+     "detail": "r = 0.999975"
+    },
+    {
+     "name": "mean |dmargin| <= 0.05",
+     "passed": true,
+     "detail": "mean = 0.0080"
+    },
+    {
+     "name": "p99 |dmargin| <= 0.25",
+     "passed": true,
+     "detail": "p99 = 0.0430, max = 0.0840"
+    },
+    {
+     "name": "pred agreement >= 254/256, flips only on non-confident preds",
+     "passed": true,
+     "detail": "agree = 255/256, confident flips = []"
+    },
+    {
+     "name": "accuracy within 1/256 of 0.6484",
+     "passed": true,
+     "detail": "accuracy = 0.644531"
+    },
+    {
+     "name": "self-consistency max |dmargin| < 1e-3",
+     "passed": true,
+     "detail": "jitter = 0.00e+00"
+    }
+   ],
+   "runtime_seconds": 63.2,
+   "stats": {
+    "pearson_r": 0.9999748550519122,
+    "mean_abs_delta": 0.008023596368730086,
+    "p99_abs_delta": 0.04296875,
+    "max_abs_delta": 0.083984375,
+    "pred_agreement": 255,
+    "accuracy": 0.64453125,
+    "self_jitter": 0.0
+   }
+  },
+  {
+   "stage": "2-knockout",
+   "checks": [
+    {
+     "name": "Image->Question: Spearman >= 0.95 vs n=10 reference",
+     "passed": true,
+     "detail": "rho = 0.9978"
+    },
+    {
+     "name": "Image->Question: top-3 layer set identical",
+     "passed": true,
+     "detail": "ref [0, 11, 14] vs new [0, 11, 14]"
+    },
+    {
+     "name": "Image->Question: top-5 drops within max(0.05, 15%)",
+     "passed": true,
+     "detail": "drift = {}"
+    },
+    {
+     "name": "Image->Last: Spearman >= 0.7 vs n=7084 profile (n=10 run, no n=10 reference)",
+     "passed": true,
+     "detail": "rho = 0.7265"
+    },
+    {
+     "name": "Image->Question layer 31 drop near zero and near archived",
+     "passed": true,
+     "detail": "drop = -0.00365 (archived n=10: -0.00339)"
+    }
+   ],
+   "runtime_seconds": 105.6,
+   "summaries": [
+    {
+     "flow": "Image->Last",
+     "layer": 0,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.695238693555196,
+     "mean_margin_drop": 0.146998413403829,
+     "t_stat": 4.208598997095312,
+     "p_value": 0.00227752158454497,
+     "effect_size": 1.4028661984838116
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 1,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8382009347279866,
+     "mean_margin_drop": 0.004036172231038471,
+     "t_stat": 0.3271837461639712,
+     "p_value": 0.751010538375375,
+     "effect_size": 0.10906121925193522
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 2,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.802198314666748,
+     "mean_margin_drop": 0.040038792292277046,
+     "t_stat": 4.00451607247984,
+     "p_value": 0.0030893125723015368,
+     "effect_size": 1.3348382458097594
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 3,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.840023597081502,
+     "mean_margin_drop": 0.002213509877522846,
+     "t_stat": 0.9278688090202695,
+     "p_value": 0.37768820014453175,
+     "effect_size": 0.30928917084277185
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 4,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8322110573450727,
+     "mean_margin_drop": 0.010026049613952637,
+     "t_stat": 2.0333715090027145,
+     "p_value": 0.0725381677075246,
+     "effect_size": 0.6777900447948585
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 5,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8383306503295898,
+     "mean_margin_drop": 0.003906456629435251,
+     "t_stat": 2.2679067811649603,
+     "p_value": 0.04953227978878966,
+     "effect_size": 0.7559674641233152
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 6,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8329272270202637,
+     "mean_margin_drop": 0.009309879938761423,
+     "t_stat": 2.3480464239315486,
+     "p_value": 0.04344389419574118,
+     "effect_size": 0.7826814833097436
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 7,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8382008870442705,
+     "mean_margin_drop": 0.004036219914754291,
+     "t_stat": 1.082913475833274,
+     "p_value": 0.3070051551436004,
+     "effect_size": 0.3609708357841306
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 8,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8374844789505005,
+     "mean_margin_drop": 0.004752628008524606,
+     "t_stat": 0.945403461923668,
+     "p_value": 0.36914102773096386,
+     "effect_size": 0.31513427835048924
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 9,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8553229331970216,
+     "mean_margin_drop": -0.01308582623799639,
+     "t_stat": -1.6206876501323806,
+     "p_value": 0.13953572312548834,
+     "effect_size": -0.5402289936851468
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 10,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8392425378163653,
+     "mean_margin_drop": 0.0029945691426595646,
+     "t_stat": 0.9085891140761153,
+     "p_value": 0.3872501046481979,
+     "effect_size": 0.3028627317177774
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 11,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8661954243977865,
+     "mean_margin_drop": -0.023958317438761333,
+     "t_stat": -3.027261486261692,
+     "p_value": 0.014310008324448599,
+     "effect_size": -1.0090867370755519
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 12,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8644371430079145,
+     "mean_margin_drop": -0.02220003604888916,
+     "t_stat": -2.199609490412823,
+     "p_value": 0.055375826067199804,
+     "effect_size": -0.7332029213151623
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 13,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8700368007024126,
+     "mean_margin_drop": -0.0277996937433878,
+     "t_stat": -4.3454584130260345,
+     "p_value": 0.0018625598705343843,
+     "effect_size": -1.448485382950844
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 14,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.84751037756602,
+     "mean_margin_drop": -0.005273270606994629,
+     "t_stat": -0.261936724041182,
+     "p_value": 0.7992666495846424,
+     "effect_size": -0.08731222689032823
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 15,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.859815470377604,
+     "mean_margin_drop": -0.0175783634185791,
+     "t_stat": -1.587721624478867,
+     "p_value": 0.14681167562571,
+     "effect_size": -0.5292403821519182
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 16,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8283048391342165,
+     "mean_margin_drop": 0.013932267824808785,
+     "t_stat": 2.5440136236218653,
+     "p_value": 0.031502644419828224,
+     "effect_size": 0.8480040250592548
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 17,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8396979967753095,
+     "mean_margin_drop": 0.00253911018371582,
+     "t_stat": 0.23569438968986828,
+     "p_value": 0.8189457233794637,
+     "effect_size": 0.07856477225388611
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 18,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.839567844072978,
+     "mean_margin_drop": 0.0026692628860473635,
+     "t_stat": 0.2591972712133254,
+     "p_value": 0.8013142470311653,
+     "effect_size": 0.08639906243866727
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 19,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8271973848342897,
+     "mean_margin_drop": 0.015039722124735543,
+     "t_stat": 1.645921066929638,
+     "p_value": 0.13418782051012806,
+     "effect_size": 0.5486401555024603
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 20,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8492681344350177,
+     "mean_margin_drop": -0.0070310274759927795,
+     "t_stat": -1.1615930507702206,
+     "p_value": 0.27527983149257984,
+     "effect_size": -0.38719747036097696
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 21,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8165863037109373,
+     "mean_margin_drop": 0.025650803248087595,
+     "t_stat": 2.11704398284223,
+     "p_value": 0.06334101695118052,
+     "effect_size": 0.7056811334735679
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 22,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8391123453776044,
+     "mean_margin_drop": 0.0031247615814208986,
+     "t_stat": 0.4822698961734326,
+     "p_value": 0.6411265260318523,
+     "effect_size": 0.16075654935492045
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 23,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8397634029388428,
+     "mean_margin_drop": 0.0024737040201823213,
+     "t_stat": 0.6407032780078452,
+     "p_value": 0.5376852518583588,
+     "effect_size": 0.21356757495193127
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 24,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8305832227071126,
+     "mean_margin_drop": 0.011653884251912494,
+     "t_stat": 1.6486751245502995,
+     "p_value": 0.133615503980271,
+     "effect_size": 0.5495581156967921
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 25,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8421068668365477,
+     "mean_margin_drop": 0.00013024012247724314,
+     "t_stat": 0.025116379227736522,
+     "p_value": 0.9805102129422626,
+     "effect_size": 0.008372121027458835
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 26,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.846274002393087,
+     "mean_margin_drop": -0.004036895434061627,
+     "t_stat": -1.843949674972712,
+     "p_value": 0.09829243141953083,
+     "effect_size": -0.6146489558049576
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 27,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.845166786511739,
+     "mean_margin_drop": -0.0029296795527139706,
+     "t_stat": -3.1429309242652206,
+     "p_value": 0.011871870581536513,
+     "effect_size": -1.0476398950964003
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 28,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8417813777923584,
+     "mean_margin_drop": 0.00045572916666669627,
+     "t_stat": 0.11884909802063588,
+     "p_value": 0.908005387570371,
+     "effect_size": 0.03961633156854977
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 29,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8466641902923584,
+     "mean_margin_drop": -0.004427083333333304,
+     "t_stat": -2.331466636500724,
+     "p_value": 0.04463978771986845,
+     "effect_size": -0.7771541812393135
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 30,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8428881486256916,
+     "mean_margin_drop": -0.0006510416666666074,
+     "t_stat": -0.4696682183138351,
+     "p_value": 0.6497631424772029,
+     "effect_size": -0.1565556963015954
+    },
+    {
+     "flow": "Image->Last",
+     "layer": 31,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.845882940292358,
+     "mean_margin_drop": -0.003645833333333304,
+     "t_stat": -1.0000000000000002,
+     "p_value": 0.3434363961379133,
+     "effect_size": -0.3333330285717072
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 0,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.3311511993408205,
+     "mean_margin_drop": 0.5110859076182048,
+     "t_stat": 4.312787855207843,
+     "p_value": 0.001953694780618184,
+     "effect_size": 1.43759591129887
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 1,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8350107034047443,
+     "mean_margin_drop": 0.007226403554280658,
+     "t_stat": 0.32756879796935684,
+     "p_value": 0.7507288855971628,
+     "effect_size": 0.10918958282477823
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 2,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8074062665303545,
+     "mean_margin_drop": 0.03483084042867031,
+     "t_stat": 2.540200711358949,
+     "p_value": 0.031700340981841234,
+     "effect_size": 0.8467333646131133
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 3,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.795035886764526,
+     "mean_margin_drop": 0.047201220194498725,
+     "t_stat": 2.486912859686545,
+     "p_value": 0.03459680590815354,
+     "effect_size": 0.8289708076409338
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 4,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.825831174850464,
+     "mean_margin_drop": 0.016405932108561228,
+     "t_stat": 0.5350421224455146,
+     "p_value": 0.6055858845047495,
+     "effect_size": 0.17834735476052854
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 5,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8359219392140704,
+     "mean_margin_drop": 0.006315167744954486,
+     "t_stat": 0.23561629925535124,
+     "p_value": 0.8190044913896617,
+     "effect_size": 0.07853875665095522
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 6,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8810383955637615,
+     "mean_margin_drop": -0.03880128860473633,
+     "t_stat": -1.2144098633511493,
+     "p_value": 0.255492774581274,
+     "effect_size": -0.4048032455516951
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 7,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8462732791900636,
+     "mean_margin_drop": -0.004036172231038382,
+     "t_stat": -0.1632611152798868,
+     "p_value": 0.8739200548184294,
+     "effect_size": -0.05442036442237533
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 8,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.7264168818791705,
+     "mean_margin_drop": 0.11582022507985439,
+     "t_stat": 1.7591434617356783,
+     "p_value": 0.11241382720364221,
+     "effect_size": 0.5863811242242591
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 9,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8215988874435425,
+     "mean_margin_drop": 0.020638219515482614,
+     "t_stat": 0.5176437711421629,
+     "p_value": 0.6171889095135327,
+     "effect_size": 0.17254790928801167
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 10,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.6520680745442706,
+     "mean_margin_drop": 0.1901690324147543,
+     "t_stat": 3.9611455026792024,
+     "p_value": 0.0032985488984954192,
+     "effect_size": 1.3203817425496414
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 11,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.3042803764343263,
+     "mean_margin_drop": 0.537956730524699,
+     "t_stat": 3.7517836984147603,
+     "p_value": 0.004542168364531184,
+     "effect_size": 1.2505945370655298
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 12,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.751415491104126,
+     "mean_margin_drop": 0.09082161585489912,
+     "t_stat": 0.8849690725184153,
+     "p_value": 0.39919906731478233,
+     "effect_size": 0.2949896812581717
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 13,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.9511571486790973,
+     "mean_margin_drop": -0.10892004172007237,
+     "t_stat": -5.111301650900763,
+     "p_value": 0.0006353865026571038,
+     "effect_size": -1.7037669504574495
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 14,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.5264145056406657,
+     "mean_margin_drop": 0.3158226013183594,
+     "t_stat": 1.9823834723947356,
+     "p_value": 0.0787568088367439,
+     "effect_size": 0.6607944769724663
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 15,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.870036784807841,
+     "mean_margin_drop": -0.02779967784881592,
+     "t_stat": -1.2769672662851816,
+     "p_value": 0.23357366302450888,
+     "effect_size": -0.4256556902539716
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 16,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.82980272769928,
+     "mean_margin_drop": 0.01243437925974531,
+     "t_stat": 1.474658729126057,
+     "p_value": 0.17440473506901855,
+     "effect_size": 0.49155271538924084
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 17,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8523935159047444,
+     "mean_margin_drop": -0.010156408945719342,
+     "t_stat": -0.3071310465521967,
+     "p_value": 0.7657313512466452,
+     "effect_size": -0.10237700519775512
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 18,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.825505089759827,
+     "mean_margin_drop": 0.016732017199198434,
+     "t_stat": 0.729634565681346,
+     "p_value": 0.4841695250908794,
+     "effect_size": 0.24321148654129876
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 19,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.7934081077575685,
+     "mean_margin_drop": 0.04882899920145674,
+     "t_stat": 2.5996390041059225,
+     "p_value": 0.028755247213045877,
+     "effect_size": 0.8665461809199124
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 20,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8659350713094076,
+     "mean_margin_drop": -0.023697964350382426,
+     "t_stat": -2.4788512818301265,
+     "p_value": 0.03505745137470578,
+     "effect_size": -0.8262834725073996
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 21,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.791781846682231,
+     "mean_margin_drop": 0.050455260276794436,
+     "t_stat": 2.26502669262467,
+     "p_value": 0.04976603052605206,
+     "effect_size": 0.7550087845625835
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 22,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.848357319831848,
+     "mean_margin_drop": -0.00612021287282305,
+     "t_stat": -0.6649955539346387,
+     "p_value": 0.5227266753755209,
+     "effect_size": -0.2216651043610115
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 23,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8398284991582234,
+     "mean_margin_drop": 0.0024086078008016543,
+     "t_stat": 0.39827772804547756,
+     "p_value": 0.699708428176971,
+     "effect_size": 0.13275916950674604
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 24,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8295419931411745,
+     "mean_margin_drop": 0.012695113817850778,
+     "t_stat": 0.9914292099612183,
+     "p_value": 0.34738089995718197,
+     "effect_size": 0.33047631729154
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 25,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8368985732396443,
+     "mean_margin_drop": 0.005338533719380756,
+     "t_stat": 0.6045544034124616,
+     "p_value": 0.5604051882579463,
+     "effect_size": 0.20151805840209955
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 26,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.853174837430318,
+     "mean_margin_drop": -0.010937730471293072,
+     "t_stat": -2.311246884706692,
+     "p_value": 0.046142236786552035,
+     "effect_size": -0.7704150855820183
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 27,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8445157766342164,
+     "mean_margin_drop": -0.002278669675191214,
+     "t_stat": -1.1040581075892906,
+     "p_value": 0.29821029217522993,
+     "effect_size": -0.36801877482314815
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 28,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.84145561059316,
+     "mean_margin_drop": 0.0007814963658651308,
+     "t_stat": 0.153134595664149,
+     "p_value": 0.8816705440576729,
+     "effect_size": 0.05104483188051698
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 29,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8581228017807008,
+     "mean_margin_drop": -0.015885694821675587,
+     "t_stat": -3.2197975348219736,
+     "p_value": 0.010492794050032294,
+     "effect_size": -1.0732651198236212
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 30,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.8395676215489702,
+     "mean_margin_drop": 0.002669485410054584,
+     "t_stat": 2.5063059863135977,
+     "p_value": 0.033513270575760236,
+     "effect_size": 0.8354327142223366
+    },
+    {
+     "flow": "Image->Question",
+     "layer": 31,
+     "samples": 10,
+     "mean_base_margin": 2.842237106959025,
+     "mean_new_margin": 2.845882940292358,
+     "mean_margin_drop": -0.003645833333333304,
+     "t_stat": -1.0000000000000002,
+     "p_value": 0.3434363961379133,
+     "effect_size": -0.3333330285717072
+    }
+   ],
+   "secondary": {
+    "Image->Question": {
+     "spearman_vs_n7084": 0.8328445747800585
+    },
+    "Image->Last": {
+     "spearman_vs_n7084": 0.7265395894428152
+    }
+   }
+  },
+  {
+   "stage": "3-A0-regression",
+   "checks": [
+    {
+     "name": "mean_margin_drop within 0.03 of archived",
+     "passed": true,
+     "detail": "archived 0.21307 vs new 0.21358 (d = +0.00051)"
+    },
+    {
+     "name": "per-sample drop correlation r >= 0.98",
+     "passed": true,
+     "detail": "r = 0.99959"
+    },
+    {
+     "name": "controls: mean drop < 50% of binding drop",
+     "passed": true,
+     "detail": "mean control -0.02158 vs binding 0.21358"
+    }
+   ],
+   "binding_summary": {
+    "baseline_accuracy": 0.64453125,
+    "ablated_accuracy": 0.6328125,
+    "accuracy_drop": 0.01171875,
+    "mean_probability_drop": 0.04458498733583838,
+    "baseline_gt_probability": 0.00016106356503176045,
+    "ablated_gt_probability": 0.00016288876042125366,
+    "mean_gt_probability_drop": -1.8251953894932171e-06,
+    "baseline_margin": 2.7406377736479044,
+    "ablated_margin": 2.5270572922502956,
+    "mean_margin_drop": 0.21358048139760893,
+    "mean_relative_perturbation": 0.018554603861931175,
+    "runtime_seconds": 64.1
+   },
+   "per_sample_r": 0.9995850953459099,
+   "controls": {
+    "new": [
+     -0.021700363450994086,
+     -0.015510434595247091,
+     -0.02518442381794252,
+     -0.017313527408987273,
+     -0.019452417424569508,
+     -0.01874274744962653,
+     -0.01879110854739944,
+     -0.01950817446534831,
+     -0.026631618539492273,
+     -0.02416472680245836,
+     -0.017328695238878315,
+     -0.023289909896751237,
+     -0.029172142346700018,
+     -0.024022314076622316,
+     -0.02290585807835061
+    ],
+    "archived": [
+     -0.02226490077252189,
+     -0.01532732741907238,
+     -0.02512848904977241,
+     -0.017321078417201836,
+     -0.019833741864810392,
+     -0.018831685651093694,
+     -0.018864788580685854,
+     -0.019815935598065458,
+     -0.026356882881373167,
+     -0.024307064091165866,
+     -0.017544788929323357,
+     -0.023030457086861123,
+     -0.029042434257765606,
+     -0.02422823446492353,
+     -0.023076244785139942
+    ],
+    "pearson_r": 0.9981912192068395
+   }
+  }
+ ],
+ "requested": [
+  0,
+  1,
+  2,
+  3
+ ],
+ "provenance": {
+  "timestamp": "2026-08-25T17:17:48+0200",
+  "git_sha": "411e93bdc84905ff92cf46a928aaaab5a84bf830",
+  "git_dirty": false,
+  "argv": [
+   "/home/ron/Documents/Github/vlm-flow-probe/src/vlmflowprobe/cli/verify_equivalence.py",
+   "--all"
+  ],
+  "python": "3.13.13",
+  "hostname": "fedora.home",
+  "vlmflowprobe": "0.1.0",
+  "torch": "2.13.0+cu130",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "transformers": "4.57.6"
+ },
+ "passed": true
+}
