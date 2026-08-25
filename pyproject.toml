@@ -39,6 +39,8 @@ vfp-collect = "vlmflowprobe.cli.collect_activations:main"
 vfp-distill = "vlmflowprobe.cli.distill_results:main"
 vfp-analyze-multilayer = "vlmflowprobe.cli.analyze_multilayer:main"
 vfp-gen-clevr = "vlmflowprobe.cli.generate_clevr_lite:main"
+vfp-controls = "vlmflowprobe.cli.run_controls:main"
+vfp-analyze-controls = "vlmflowprobe.cli.analyze_controls:main"
 vfp-gate = "vlmflowprobe.cli.verify_equivalence:main"
 vfp-smoke-controls = "vlmflowprobe.cli.smoke_matched_controls:main"
 
