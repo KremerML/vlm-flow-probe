@@ -10,12 +10,16 @@ import yaml
 
 DEFAULT_CONFIG: Dict[str, Any] = {
     "model": {
+        # Registry key selecting the ModelAdapter (adapters/registry.py).
+        "adapter": "hf-llava",
         "name": "llava-hf/llava-1.5-7b-hf",
+        "dtype": "float16",
         "target_layer": 12,
-        "d_model": 4096,
-        "conv_mode": "vicuna_v1",
-        "model_base": None,
         "activation_site": "residual",
+        # Adapter-private options (the hf-llava adapter reads pad_to_square).
+        "adapter_options": {"pad_to_square": True},
+        # d_model is derived from the adapter's model; conv_mode/model_base were
+        # LLaVA-repo loader arguments and no longer exist.
     },
     "sae": {
         "n_features": 32768,
@@ -27,7 +31,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "epochs": 10,
         "seed": 42,
         "dtype": "float32",
-        "position_type": "attribute",
+        "position_type": "question",
     },
     "reproducibility": {
         "seed": 42,
@@ -35,16 +39,16 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "benchmark": False,
     },
     "experiment": {
-        "output_dir": "output/sae_experiments/exp_default",
-        "output_base": "output/sae_experiments",
+        "output_dir": "output/experiments/exp_default",
+        "output_base": "output/experiments",
         "name": "experiment",
         "use_timestamp": False,
     },
     "dataset": {
-        "task_types": ["ChooseAttr"],
-        "split": "validation",
-        "refined_dataset": "datasets/GQA_val_correct_question_with_choose_ChooseAttr.csv",
-        "image_folder": "datasets/images",
+        "format": "clevr_lite",
+        "data_dir": "datasets/clevr_lite",
+        "split": "val",
+        "filter_held_out": None,
     },
     "feature_identification": {
         "discrimination_threshold": 2.0,
@@ -55,7 +59,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "selection_method": "ratio",
         "candidate_pool_k": 200,
         "causal_scores_path": None,
-        "position_type": "attribute",
+        "position_type": "question",
         "correctness_metric": "option_logprob",
         "logprob_normalize": True,
         "batch_size": 256,
@@ -70,7 +74,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "n_bootstrap": 1000,
         "n_random_sets": 1,
         "random_sampling": "uniform",
-        "position_type": "attribute",
+        "position_type": "question",
         "mode": "residual",
         "delta_scale": 1.0,
         "operation": "zero",
@@ -80,14 +84,13 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "n_random_sets": 1,
         "sampling": "uniform",
         "seed": 42,
-        # NOTE: "correct_mean" is a v1 statistic. v2 stats files carry only causal_score,
-        # activation_mean and gradient_mean, so matched sampling against this key silently
-        # degrades to uniform -- which is what every published v2 run actually did. New
-        # configs should set matched_metric: "activation_mean" and strict_matching: true.
-        # The default is left as-is so existing configs still reproduce their numbers.
-        "matched_metric": "correct_mean",
-        # Raise instead of falling back to uniform when the metric is missing.
-        "strict_matching": False,
+        # Inverted from the archive's defaults: matched sampling against a key
+        # the stats files actually carry, and strict (raise instead of silently
+        # degrading to uniform -- the failure mode that inflated every archived
+        # z-score before 2026-08-07). configs/frozen/* carry the old values
+        # explicitly where an archived run used them.
+        "matched_metric": "activation_mean",
+        "strict_matching": True,
     },
     "evaluation": {
         "significance_level": 0.05,
@@ -99,7 +102,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "kl_threshold": 0.5,
         "allow_missing_stats": True,
         "sample_size": 256,
-        "search_paths": ["output/sae_experiments"],
+        "search_paths": ["output/experiments"],
     },
     "knockout": {
         "flows": ["Image->Question", "Image->Last"],
@@ -176,13 +179,58 @@ def _deep_update(base: Dict[str, Any], updates: Dict[str, Any]) -> Dict[str, Any
     return base
 
 
-def load_config(path: str) -> Config:
-    """Load YAML config and merge with defaults."""
+def _load_yaml(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as handle:
+        return yaml.safe_load(handle) or {}
+
+
+def apply_overrides(cfg: Dict[str, Any], overrides) -> Dict[str, Any]:
+    """Apply ``section.key[.subkey]=value`` strings; values parse as YAML."""
+    for item in overrides or []:
+        key, sep, raw_value = item.partition("=")
+        if not sep:
+            raise ValueError(f"override {item!r} is not of the form key.path=value")
+        value = yaml.safe_load(raw_value)
+        node = cfg
+        parts = key.split(".")
+        for part in parts[:-1]:
+            node = node.setdefault(part, {})
+            if not isinstance(node, dict):
+                raise ValueError(f"override {item!r} descends through a non-dict at {part!r}")
+        node[parts[-1]] = value
+    return cfg
+
+
+def load_config(path: str, overrides=None) -> Config:
+    """Load a YAML config: defaults <- include fragments <- own keys <- overrides.
+
+    ``include:`` lists fragment paths resolved relative to the config file and
+    deep-merged in order before the file's own keys. Fragments may not include
+    further fragments. A config marked ``frozen: true`` may not use
+    ``include:`` at all -- frozen configs are fully-resolved reproduction
+    records and must stay self-contained.
+
+    The returned config is fully resolved; ``save_config`` of it into the
+    experiment dir is therefore complete provenance regardless of composition.
+    """
     cfg = copy.deepcopy(DEFAULT_CONFIG)
     if path and os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as handle:
-            updates = yaml.safe_load(handle) or {}
-        cfg = _deep_update(cfg, updates)
+        raw = _load_yaml(path)
+        frozen = bool(raw.pop("frozen", False))
+        includes = raw.pop("include", [])
+        if frozen and includes:
+            raise ValueError(f"{path}: frozen configs may not use include:")
+        base_dir = os.path.dirname(os.path.abspath(path))
+        for fragment in includes:
+            fragment_path = fragment if os.path.isabs(fragment) else os.path.join(base_dir, fragment)
+            if not os.path.exists(fragment_path):
+                raise FileNotFoundError(f"{path}: included fragment not found: {fragment_path}")
+            fragment_raw = _load_yaml(fragment_path)
+            if "include" in fragment_raw:
+                raise ValueError(f"{fragment_path}: fragments may not include further fragments")
+            cfg = _deep_update(cfg, fragment_raw)
+        cfg = _deep_update(cfg, raw)
+    apply_overrides(cfg, overrides)
     return Config(cfg)
 
 

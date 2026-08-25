@@ -32,7 +32,6 @@ import sys
 
 import numpy as np
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from vlmflowprobe.ablation.statistical_analysis import (  # noqa: E402
     paired_bootstrap_ci,

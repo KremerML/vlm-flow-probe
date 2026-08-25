@@ -122,3 +122,24 @@ class CLEVRLiteVQADataset:
             entry["attribute_tokens"] = attr_entries
 
 
+
+
+def build_dataset(config, tokenizer=None):
+    """Dataset from the ``dataset`` config section.
+
+    Only CLEVR-Lite is wired in this repo; the GQA/CSV path stayed in the
+    archive with the results that used it.
+    """
+    data_cfg = config.get("dataset", {})
+    fmt = data_cfg.get("format", "clevr_lite")
+    if fmt != "clevr_lite":
+        raise NotImplementedError(
+            f"dataset.format={fmt!r}: only 'clevr_lite' is supported here; "
+            "the GQA/CSV pipeline lives in the archive repo"
+        )
+    return CLEVRLiteVQADataset(
+        data_dir=data_cfg.get("data_dir", "datasets/clevr_lite"),
+        split=data_cfg.get("split", "val"),
+        tokenizer=tokenizer,
+        filter_held_out=data_cfg.get("filter_held_out"),
+    )

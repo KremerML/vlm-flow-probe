@@ -22,34 +22,32 @@ class SAETrainer:
         config,
         target_layer: int,
         activation_site: str = "residual",
-        model: Optional[nn.Module] = None,
+        adapter=None,
     ):
         self.sae = sae
         self.config = config
         self.target_layer = target_layer
         self.activation_site = activation_site
-        self.model = model
+        self.adapter = adapter
 
     def collect_activations(
         self,
         dataset,
         position_type: str = "question",
-        tokenizer=None,
         max_samples: Optional[int] = None,
         show_progress: bool = False,
         checkpoint_dir: Optional[str] = None,
     ):
-        if self.model is None:
-            raise ValueError("model is required for activation collection")
+        if self.adapter is None:
+            raise ValueError("an adapter is required for activation collection")
         collector = ActivationCollector(
-            self.model,
+            self.adapter,
             self.target_layer,
             activation_site=self.activation_site,
         )
         return collector.collect_from_dataset(
             dataset,
             position_type=position_type,
-            tokenizer=tokenizer,
             max_samples=max_samples,
             show_progress=show_progress,
             checkpoint_dir=checkpoint_dir,
