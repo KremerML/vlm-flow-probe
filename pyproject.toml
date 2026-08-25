@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vlm-flow-probe"
+version = "0.1.0"
+description = "Calibrating SAE feature ablation against attention knockout in vision-language models, behind a model-adapter interface"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Ron Kremer" }]
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.4",
+    # Knockout mechanism (decoder-layer forward_pre_hook editing the 4D eager
+    # attention mask) is verified against the 4.57.x layer-call contract;
+    # 4.58 removes deprecated kwargs and may reshape it.
+    "transformers>=4.56,<4.58",
+    "accelerate",
+    "pillow",
+    "numpy",
+    "pyyaml",
+    "tqdm",
+    "scipy",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff"]
+plots = ["matplotlib"]
+
+[project.scripts]
+vfp-knockout = "vlmflowprobe.cli.knockout_sweep:main"
+vfp-train-sae = "vlmflowprobe.cli.train_sae:main"
+vfp-identify = "vlmflowprobe.cli.identify_features:main"
+vfp-ablate = "vlmflowprobe.cli.run_ablation:main"
+vfp-analyze = "vlmflowprobe.cli.analyze_results:main"
+vfp-multilayer = "vlmflowprobe.cli.run_multilayer:main"
+vfp-collect = "vlmflowprobe.cli.collect_activations:main"
+vfp-distill = "vlmflowprobe.cli.distill_results:main"
+vfp-analyze-multilayer = "vlmflowprobe.cli.analyze_multilayer:main"
+vfp-gen-clevr = "vlmflowprobe.cli.generate_clevr_lite:main"
+vfp-gate = "vlmflowprobe.cli.verify_equivalence:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "gpu: needs a CUDA GPU and model weights (deselected by default; run with -m gpu)",
+    "gate: equivalence-gate checks against the archive repo",
+]
+addopts = "-m 'not gpu and not gate'"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"

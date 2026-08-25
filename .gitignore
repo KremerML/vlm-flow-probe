@@ -1,0 +1,35 @@
+# --- environments / build ---------------------------------------------------
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# --- data (regenerable; see README) ------------------------------------------
+# CLEVR-Lite regenerates deterministically: vfp-gen-clevr with the committed
+# config (seed 32) reproduces it exactly.
+datasets/
+
+# --- bulk experiment artifacts ----------------------------------------------
+# Policy (carried from the archive repo): every large result JSON has a small
+# committed *.summary.json sibling produced by vfp-distill — the summaries are
+# what analyses and the paper cite. Raw files stay local, never in git.
+**/sae_checkpoint.pt                  # ~1 GB each; retrain from configs
+**/checkpoint.jsonl                   # resume logs, one line per completed unit
+**/_activation_cache/                 # training scratch, reassembled then deleted
+output/**/run_log.txt                 # mostly tqdm redraw
+output/**/pipeline_log.txt
+output/**/pipeline_pid.txt
+output/**/causal_feature_stats.json   # distilled to causal_feature_stats.summary.json
+output/**/feature_stats.json          # distilled to feature_stats.summary.json
+output/**/ablation_results.json       # distilled to .summary.json
+output/**/ablation_v2_results.json    # distilled to .summary.json
+output/**/knockout_results.json       # knockout_summary.json is the committed sibling
+output/**/conditions/*/results.json   # summary.json sibling carries per_sample_distilled
+output/**/feature_[0-9]*.png          # per-feature visualizations, regenerable
+
+# --- gate runs ---------------------------------------------------------------
+output/gate/
