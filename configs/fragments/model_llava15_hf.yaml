@@ -1,0 +1,11 @@
+# LLaVA-1.5-7B via the HF-native adapter. The archive ran the same weights
+# through the LLaVA-NeXT repo (liuhaotian/llava-v1.5-7b); numeric equivalence
+# of this adapter is established by the gate (gate/README.md).
+model:
+  adapter: "hf-llava"
+  name: "llava-hf/llava-1.5-7b-hf"
+  dtype: "float16"
+  activation_site: "attn_out"
+  adapter_options:
+    prompt_template: "vicuna_v1"
+    pad_to_square: true

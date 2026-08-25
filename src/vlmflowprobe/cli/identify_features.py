@@ -47,7 +47,7 @@ def main() -> None:
 
     experiment_dir, seed = setup_experiment(args, config)
     adapter = load_adapter(config)
-    dataset = build_dataset(config, tokenizer=adapter.tokenizer)
+    dataset = build_dataset(config, tokenizer=adapter.tokenizer, split="val")
 
     checkpoint_path = args.sae_checkpoint or os.path.join(experiment_dir, "sae_checkpoint.pt")
     sae = load_sae(config, adapter, checkpoint_path)

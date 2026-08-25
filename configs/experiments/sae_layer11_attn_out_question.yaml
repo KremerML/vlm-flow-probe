@@ -1,0 +1,12 @@
+# Layer 11 SAE experiment: train + causal feature ID + ablation all read this.
+include:
+  - ../fragments/model_llava15_hf.yaml
+  - ../fragments/dataset_clevr_lite.yaml
+  - ../fragments/sae_default.yaml
+  - ../fragments/ablation_default.yaml
+model:
+  target_layer: 11
+experiment:
+  output_base: "output/experiments"
+  name: "sae_clevr_lite_layer11_attn_out_question"
+  use_timestamp: false

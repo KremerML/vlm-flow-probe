@@ -124,8 +124,12 @@ class CLEVRLiteVQADataset:
 
 
 
-def build_dataset(config, tokenizer=None):
+def build_dataset(config, tokenizer=None, split=None):
     """Dataset from the ``dataset`` config section.
+
+    ``split`` overrides ``dataset.split`` — evaluation stages (feature ID,
+    ablation) pass ``"val"`` explicitly, matching the archive stages that
+    hardcoded it while the config's split (``train``) fed SAE training.
 
     Only CLEVR-Lite is wired in this repo; the GQA/CSV path stayed in the
     archive with the results that used it.
@@ -139,7 +143,7 @@ def build_dataset(config, tokenizer=None):
         )
     return CLEVRLiteVQADataset(
         data_dir=data_cfg.get("data_dir", "datasets/clevr_lite"),
-        split=data_cfg.get("split", "val"),
+        split=split or data_cfg.get("split", "val"),
         tokenizer=tokenizer,
         filter_held_out=data_cfg.get("filter_held_out"),
     )

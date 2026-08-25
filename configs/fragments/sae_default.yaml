@@ -1,0 +1,16 @@
+# SAE recipe used for every published CLEVR-Lite dictionary:
+# 8x expansion over d_model=4096, L1 5e-4, 10 epochs from cached activations.
+sae:
+  n_features: 32768
+  l1_coeff: 0.0005
+training:
+  batch_size: 256
+  learning_rate: 0.0002
+  epochs: 10
+  seed: 42
+  dtype: "float32"
+  position_type: "question"
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false

@@ -1,0 +1,23 @@
+# v2 evaluation recipe: replace-mode ablation at question positions, margin
+# metric, 15 matched-strict controls (the honest defaults — see
+# random_control in core/config.py for the history).
+feature_identification:
+  top_k: 200
+  position_type: "question"
+  logprob_normalize: true
+ablation:
+  n_random_features: 200
+  n_random_sets: 15
+  random_sampling: "matched"
+  position_type: "question"
+  mode: "replace"
+random_control:
+  n_random_sets: 15
+  sampling: "matched"
+  seed: 42
+  matched_metric: "activation_mean"
+  strict_matching: true
+evaluation:
+  significance_level: 0.05
+  primary_metric: "forced_choice_margin"
+  logprob_normalize: true

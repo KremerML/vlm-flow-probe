@@ -1,0 +1,160 @@
+# FROZEN reproduction config — fully resolved, no include:.
+# Translated from the archive repo's configs/clevr_lite/knockout.yaml (schema updated: adapter key added,
+# d_model/conv_mode/model_base removed, checkpoint name mapped to the HF-native
+# llava-hf/llava-1.5-7b-hf whose equivalence the gate establishes).
+# Reproduces the archived experiment 'knockout_clevr_lite_run1'.
+# NOTE random_control carries the archived values verbatim (matched_metric:
+# correct_mean, strict_matching: False) — the permissive matching that silently produced
+# uniform controls; do NOT copy these values into new experiments.
+frozen: true
+model:
+  adapter: hf-llava
+  name: llava-hf/llava-1.5-7b-hf
+  dtype: float16
+  target_layer: 12
+  activation_site: residual
+  adapter_options:
+    pad_to_square: true
+sae:
+  n_features: 32768
+  l1_coeff: 0.001
+training:
+  batch_size: 32
+  learning_rate: 0.0001
+  epochs: 10
+  seed: 42
+  dtype: float32
+  position_type: question
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+experiment:
+  output_dir: output/experiments/exp_default
+  output_base: output/knockout_clevr_lite
+  name: knockout_clevr_lite_run1
+  use_timestamp: true
+dataset:
+  format: clevr_lite
+  data_dir: datasets/clevr_lite
+  split: val
+  filter_held_out: null
+feature_identification:
+  discrimination_threshold: 2.0
+  min_activation: 0.1
+  top_k: 50
+  min_diff: 0.0
+  aggregation: mean
+  selection_method: ratio
+  candidate_pool_k: 200
+  causal_scores_path: null
+  position_type: question
+  correctness_metric: option_logprob
+  logprob_normalize: true
+  batch_size: 256
+  fallback:
+    discrimination_threshold: 1.1
+    min_activation: 0.0
+    min_diff: 0.0
+ablation:
+  n_random_features: 50
+  n_bootstrap: 1000
+  n_random_sets: 1
+  random_sampling: uniform
+  position_type: question
+  mode: residual
+  delta_scale: 1.0
+  operation: zero
+  operation_scale: 1.0
+random_control:
+  n_random_sets: 1
+  sampling: uniform
+  seed: 42
+  matched_metric: correct_mean
+  strict_matching: false
+evaluation:
+  significance_level: 0.05
+  primary_metric: pred_token_prob
+  logprob_normalize: true
+sae_reuse:
+  recon_threshold: 0.1
+  kl_threshold: 0.5
+  allow_missing_stats: true
+  sample_size: 256
+  search_paths:
+  - output/experiments
+knockout:
+  flows:
+  - Image->Question
+  - Image->Last
+  window: 1
+  filter_correct: true
+  normalize_logprob: true
+  max_samples: null
+  top_k_layers: 5
+  batch_size: 1
+  num_workers: 0
+  output_subdir: knockout
+multilayer:
+  layers:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  excluded_layers:
+  - 0
+  encode_mode: live
+  encode_positions_only: true
+  features_per_layer: 200
+  sae_dtype: float32
+  sae_paths: {}
+  catalog_paths: {}
+  stats_paths: {}
+conditions:
+  gate: true
+  primary: true
+  nested:
+  - - 14
+  - - 13
+    - 14
+  - - 12
+    - 13
+    - 14
+  - - 11
+    - 12
+    - 13
+    - 14
+  - - 10
+    - 11
+    - 12
+    - 13
+    - 14
+  non_nested:
+  - - 10
+    - 12
+    - 14
+  - - 10
+    - 11
+    - 12
+  leave_one_out: true
+  span_knockout: true
+  budget_matched:
+    spread_per_layer: 40
+    concentrated_layer: 11
+    concentrated_k:
+    - 40
+    - 100
+    - 200
+    - 400
+    - 800
+  downstream_knockout:
+    anchor_layers:
+    - 11
+    - 14
+    downstream_to: 31
+  sensitivity_span:
+  - 10
+  - 11
+  - 12
+  - 14

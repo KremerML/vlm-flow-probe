@@ -1,0 +1,6 @@
+# CLEVR-Lite: deterministic synthetic dataset (vfp-gen-clevr, seed 32).
+# split "train" feeds SAE training; evaluation stages override to "val".
+dataset:
+  format: "clevr_lite"
+  data_dir: "datasets/clevr_lite"
+  split: "train"
