@@ -1,0 +1,13 @@
+# Layer 27: import (Gemma Scope 2) + causal feature ID + ablation all read this.
+include:
+  - ../../fragments/model_gemma3_4b_it.yaml
+  - ../../fragments/dataset_clevr_lite.yaml
+  - ../../fragments/sae_gemma_scope2_attn.yaml
+  - ../../fragments/ablation_default.yaml
+  - ../../fragments/ablation_gemma_delta.yaml
+model:
+  target_layer: 27
+experiment:
+  output_base: "output/experiments"
+  name: "gemma3_4b_sae_clevr_lite_layer27_attn_z_question"
+  use_timestamp: false

@@ -1,0 +1,14 @@
+include:
+  - ../../fragments/model_gemma3_4b_it.yaml
+  - ../../fragments/dataset_clevr_lite.yaml
+dataset:
+  split: "val"
+knockout:
+  flows: ["Image->Question", "Image->Last"]
+  window: 1
+  filter_correct: true
+  normalize_logprob: true
+experiment:
+  output_base: "output/experiments"
+  name: "gemma3_4b_knockout_clevr_lite"
+  use_timestamp: false

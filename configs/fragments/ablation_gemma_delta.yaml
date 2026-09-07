@@ -1,0 +1,18 @@
+# Gemma 3 runs ablate in delta mode: the hooked activation is replaced by
+#   x + (decode(z with selected features zeroed) - decode(z)),
+# so only the selected features' decoded contribution is removed and the
+# dictionary's reconstruction error cancels. The LLaVA runs used replace mode
+# because their task-trained dictionaries reconstructed at >99.8% explained
+# variance (pass-through drop +0.001); Gemma Scope 2's text-trained attention
+# dictionaries explain 74-82% of the variance of this task's activations
+# (reconstruction_eval.json per layer), and replace mode would then measure
+# reconstruction damage rather than feature removal. Include this AFTER
+# ablation_default.yaml. The multi-layer gate phase measures the replace-mode
+# pass-through drop, so the size of the damage avoided is on record.
+ablation:
+  mode: "residual"
+# Feature scores are likewise computed with the dictionary's error term added
+# back (Marks et al. 2024), so the pass the gradient is taken on is the
+# unmodified model's rather than one running on a 20%-error reconstruction.
+feature_identification:
+  error_term: true
