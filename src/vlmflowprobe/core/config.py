@@ -13,6 +13,10 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         # Registry key selecting the ModelAdapter (adapters/registry.py).
         "adapter": "hf-llava",
         "name": "llava-hf/llava-1.5-7b-hf",
+        # Short model identity carried into experiment names and output paths, so
+        # two models can never write to the same directory. Derived from the
+        # adapter key and checkpoint name when left null (see model_tag()).
+        "tag": None,
         "dtype": "float16",
         "target_layer": 12,
         "activation_site": "residual",
@@ -46,6 +50,9 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "output_base": "output/experiments",
         "name": "experiment",
         "use_timestamp": False,
+        # Every non-frozen run's name must carry model.tag; set False only for a
+        # deliberate one-off whose directory you are managing yourself.
+        "require_model_tag": True,
     },
     "dataset": {
         "format": "clevr_lite",
@@ -217,6 +224,7 @@ def load_config(path: str, overrides=None) -> Config:
     experiment dir is therefore complete provenance regardless of composition.
     """
     cfg = copy.deepcopy(DEFAULT_CONFIG)
+    frozen = False
     if path and os.path.exists(path):
         raw = _load_yaml(path)
         frozen = bool(raw.pop("frozen", False))
@@ -233,6 +241,10 @@ def load_config(path: str, overrides=None) -> Config:
                 raise ValueError(f"{fragment_path}: fragments may not include further fragments")
             cfg = _deep_update(cfg, fragment_raw)
         cfg = _deep_update(cfg, raw)
+    # Retained rather than dropped: reproduction records are exempt from the
+    # model-identity rule, since their names are the archive's, and nothing
+    # downstream can tell frozen from live once the flag is gone.
+    cfg["frozen"] = frozen
     apply_overrides(cfg, overrides)
     return Config(cfg)
 

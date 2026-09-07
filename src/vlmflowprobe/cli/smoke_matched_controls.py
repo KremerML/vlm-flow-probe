@@ -94,7 +94,7 @@ def phase_a(archive, layers, n_sets, top_k):
     section("1. CONFIG PLUMBING")
     repo = Path(__file__).resolve().parents[3]
     frozen = repo / "configs/frozen/sae_layer11_attn_out_question.yaml"
-    live = repo / "configs/experiments/sae_layer11_attn_out_question.yaml"
+    live = repo / "configs/experiments/llava15/sae_layer11_attn_out_question.yaml"
 
     cfg_frozen = load_config(str(frozen))
     rc = cfg_frozen.get("random_control", {})

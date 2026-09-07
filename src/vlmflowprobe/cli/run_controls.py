@@ -232,7 +232,7 @@ def main():
         for layer, path in (ml_cfg.get("sae_paths") or {}).items()
     }
     experiment = MultiLayerAblationExperiment(adapter, saes, {}, stats_by_layer, config)
-    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv)
+    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv, adapter=adapter)
 
     cache_path = args.pair_with or os.path.join(experiment_dir, "sample_cache.json")
     if os.path.exists(cache_path):

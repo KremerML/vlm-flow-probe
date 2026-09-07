@@ -14,13 +14,13 @@ export PYTHONUNBUFFERED=1
 if [ ! -d "$ACTS" ]; then
   echo "== collecting activations for layers ${LAYERS[*]} =="
   $PY -m vlmflowprobe.cli.collect_activations \
-    --config configs/experiments/sae_layer11_attn_out_question.yaml \
+    --config configs/experiments/llava15/sae_layer11_attn_out_question.yaml \
     --layers "$(IFS=,; echo "${LAYERS[*]}")" --output_dir "$ACTS"
 fi
 
 for L in "${LAYERS[@]}"; do
-  CFG="configs/experiments/sae_layer${L}_attn_out_question.yaml"
-  DIR="output/experiments/sae_clevr_lite_layer${L}_attn_out_question"
+  CFG="configs/experiments/llava15/sae_layer${L}_attn_out_question.yaml"
+  DIR="output/experiments/llava15_sae_clevr_lite_layer${L}_attn_out_question"
   if [ ! -f "$DIR/sae_checkpoint.pt" ]; then
     echo "== layer $L: training SAE =="
     $PY -m vlmflowprobe.cli.train_sae --config "$CFG" --activations_path "$ACTS"

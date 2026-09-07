@@ -132,7 +132,7 @@ def main() -> None:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
-    write_provenance(os.path.dirname(output_path), config=config.to_dict(), seed=seed, argv=sys.argv)
+    write_provenance(os.path.dirname(output_path), config=config.to_dict(), seed=seed, argv=sys.argv, adapter=adapter)
 
     b = results.get("binding", {})
     r = results.get("random", {})

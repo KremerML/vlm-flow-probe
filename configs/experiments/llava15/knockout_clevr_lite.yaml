@@ -1,6 +1,6 @@
 include:
-  - ../fragments/model_llava15_hf.yaml
-  - ../fragments/dataset_clevr_lite.yaml
+  - ../../fragments/model_llava15_hf.yaml
+  - ../../fragments/dataset_clevr_lite.yaml
 dataset:
   split: "val"
 knockout:
@@ -10,5 +10,5 @@ knockout:
   normalize_logprob: true
 experiment:
   output_base: "output/experiments"
-  name: "knockout_clevr_lite"
+  name: "llava15_knockout_clevr_lite"
   use_timestamp: true

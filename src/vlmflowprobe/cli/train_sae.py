@@ -225,6 +225,11 @@ def main() -> None:
             activations, metadata = result
             chunk_files = None
 
+    geometry = None
+    if adapter is not None:
+        from vlmflowprobe.utils.provenance import model_geometry
+
+        geometry = model_geometry(adapter)
     if adapter is not None and torch.cuda.is_available():
         # Free the model BEFORE training/reassembly — the 24 GB constraint.
         trainer.adapter = None
@@ -298,7 +303,8 @@ def main() -> None:
         },
     )
     save_config(config, os.path.join(experiment_dir, "config.yaml"))
-    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv)
+    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv,
+                     extra={"model_geometry": geometry} if geometry else None)
 
     if holdout_split is not None:
         with open(os.path.join(experiment_dir, "holdout_split.json"), "w", encoding="utf-8") as handle:

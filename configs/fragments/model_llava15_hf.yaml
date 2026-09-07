@@ -4,6 +4,9 @@
 model:
   adapter: "hf-llava"
   name: "llava-hf/llava-1.5-7b-hf"
+  # Carried into every experiment name and output path built from this fragment,
+  # so a second model cannot land in the same directory.
+  tag: "llava15"
   dtype: "float16"
   activation_site: "attn_out"
   adapter_options:

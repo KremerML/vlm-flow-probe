@@ -97,7 +97,7 @@ def main() -> None:
     os.makedirs(output_dir, exist_ok=True)
     identifier.save_results(output_dir)
     catalog_path = identifier.export_catalog(output_dir, top_k=top_k)
-    write_provenance(output_dir, config=config.to_dict(), seed=seed, argv=sys.argv)
+    write_provenance(output_dir, config=config.to_dict(), seed=seed, argv=sys.argv, adapter=adapter)
 
     print(f"\nSaved causal feature stats to {output_dir}/")
     print(f"Saved feature catalog to {catalog_path}")

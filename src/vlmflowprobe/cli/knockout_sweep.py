@@ -40,10 +40,11 @@ def main() -> None:
     os.makedirs(knockout_dir, exist_ok=True)
 
     save_config(config, os.path.join(experiment_dir, "config.yaml"))
-    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv)
 
     adapter = load_adapter(config)
     dataset = build_dataset(config, tokenizer=adapter.tokenizer)
+    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv,
+                     adapter=adapter)
 
     flows = knockout_cfg.get("flows", ["Image->Question", "Image->Last"])
     if args.flows:

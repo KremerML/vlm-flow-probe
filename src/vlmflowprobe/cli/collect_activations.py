@@ -162,7 +162,7 @@ def main() -> None:
     }
     with open(os.path.join(args.output_dir, "collection_info.json"), "w") as handle:
         json.dump(info, handle, indent=2)
-    write_provenance(args.output_dir, config=config.to_dict(), seed=seed, argv=sys.argv)
+    write_provenance(args.output_dir, config=config.to_dict(), seed=seed, argv=sys.argv, adapter=adapter)
     print(f"Collected {n_samples} samples across {len(layers)} layers in {info['runtime_seconds']}s")
 
 

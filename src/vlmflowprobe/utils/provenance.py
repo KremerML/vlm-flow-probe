@@ -26,10 +26,26 @@ def _git(*args: str) -> Optional[str]:
         return None
 
 
+def model_geometry(adapter) -> Dict[str, Any]:
+    """The model's shape, so an analysis can report depth fractions.
+
+    ``layer / n_layers`` is what makes layer numbers comparable across models:
+    without this stamped beside the results, an analysis of a run has no way to
+    know whether layer 11 was a third of the way up the stack or a quarter.
+    """
+    return {
+        "adapter": getattr(adapter, "name", None),
+        "model_name": (adapter.model_cfg or {}).get("name"),
+        "n_layers": int(adapter.n_layers),
+        "d_model": int(adapter.d_model),
+    }
+
+
 def provenance_dict(
     argv=None,
     config: Optional[Dict[str, Any]] = None,
     seed: Optional[int] = None,
+    extra: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     info: Dict[str, Any] = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
@@ -63,6 +79,7 @@ def provenance_dict(
         info["seed"] = seed
     if config is not None:
         info["resolved_config"] = config
+    info.update(extra or {})
     return info
 
 
@@ -71,9 +88,22 @@ def write_provenance(
     config: Optional[Dict[str, Any]] = None,
     seed: Optional[int] = None,
     argv=None,
+    adapter=None,
+    extra: Optional[Dict[str, Any]] = None,
 ) -> str:
+    """Stamp provenance beside a stage's outputs.
+
+    Pass ``adapter`` wherever one is loaded: it records the model geometry the
+    analysis CLIs need for depth fractions.
+    """
+    payload = dict(extra or {})
+    if adapter is not None:
+        payload["model_geometry"] = model_geometry(adapter)
     os.makedirs(experiment_dir, exist_ok=True)
     path = os.path.join(experiment_dir, "provenance.json")
     with open(path, "w") as handle:
-        json.dump(provenance_dict(argv=argv, config=config, seed=seed), handle, indent=1)
+        json.dump(
+            provenance_dict(argv=argv, config=config, seed=seed, extra=payload),
+            handle, indent=1,
+        )
     return path

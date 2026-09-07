@@ -538,7 +538,7 @@ def main():
     catalogs, stats = load_catalogs_and_stats(config)
     experiment = MultiLayerAblationExperiment(adapter, saes, catalogs, stats, config)
 
-    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv)
+    write_provenance(experiment_dir, config=config.to_dict(), seed=seed, argv=sys.argv, adapter=adapter)
     conditions = assign_control_kinds(build_conditions(experiment, config, phases))
     if args.conditions:
         wanted = {c.strip() for c in args.conditions.split(",")}

@@ -54,11 +54,17 @@ class TestIncludes(unittest.TestCase):
         write(self.path("frozen.yaml"), "frozen: true\ninclude: [frag.yaml]\n")
         with self.assertRaises(ValueError):
             load_config(self.path("frozen.yaml"))
-        # frozen without include is fine, and the flag does not leak into the config
+        # frozen without include is fine, and the flag is retained: it is what
+        # exempts a reproduction record from the model-identity rule, which its
+        # archive-era experiment name cannot satisfy.
         write(self.path("frozen_ok.yaml"), "frozen: true\nmodel:\n  target_layer: 3\n")
         cfg = load_config(self.path("frozen_ok.yaml"))
         self.assertEqual(cfg.get("model")["target_layer"], 3)
-        self.assertNotIn("frozen", cfg.data)
+        self.assertIs(cfg.get("frozen"), True)
+
+    def test_a_live_config_is_marked_not_frozen(self):
+        write(self.path("live.yaml"), "model:\n  target_layer: 3\n")
+        self.assertIs(load_config(self.path("live.yaml")).get("frozen"), False)
 
 
 class TestOverrides(unittest.TestCase):

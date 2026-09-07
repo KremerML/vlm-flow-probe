@@ -3,7 +3,7 @@
 import torch
 
 from vlmflowprobe.utils.checkpoint_utils import resolve_experiment_dir
-from vlmflowprobe.utils.config_utils import resolve_dtype
+from vlmflowprobe.utils.config_utils import resolve_dtype, validate_model_identity
 from vlmflowprobe.utils.random_utils import resolve_seed, set_global_seed
 
 
@@ -24,6 +24,10 @@ def setup_experiment(args, config):
     if getattr(args, "experiment_name", None):
         experiment_cfg["name"] = args.experiment_name
         experiment_cfg.pop("output_dir", None)
+    # Checked against the effective experiment section, so a --experiment_name that
+    # drops the model tag is caught here rather than by two runs overwriting each other.
+    data = config.to_dict() if hasattr(config, "to_dict") else dict(config)
+    validate_model_identity({**data, "experiment": experiment_cfg})
     experiment_dir = resolve_experiment_dir(
         experiment_cfg, getattr(args, "experiment_dir", None)
     )
