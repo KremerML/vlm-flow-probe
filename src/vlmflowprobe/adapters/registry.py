@@ -13,6 +13,7 @@ from vlmflowprobe.adapters.base import ModelAdapter
 # name -> "module:ClassName"
 _LAZY: Dict[str, str] = {
     "hf-llava": "vlmflowprobe.adapters.hf_llava:HFLlavaAdapter",
+    "hf-gemma3": "vlmflowprobe.adapters.hf_gemma3:HFGemma3Adapter",
     "stub": "vlmflowprobe.adapters.stub:StubAdapter",
 }
 

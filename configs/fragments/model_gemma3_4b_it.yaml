@@ -1,0 +1,9 @@
+# Gemma 3 4B (instruction-tuned) via the HF-native adapter. bfloat16 is the
+# only dtype Gemma 3 is stable in. The dictionaries live at the pre-o_proj
+# attention site (attn_z): see adapters/hf_gemma3.py for why.
+model:
+  adapter: "hf-gemma3"
+  name: "google/gemma-3-4b-it"
+  tag: "gemma3_4b"
+  dtype: "bfloat16"
+  activation_site: "attn_z"
