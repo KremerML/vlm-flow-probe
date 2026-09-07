@@ -10,7 +10,9 @@ The venv is `.venv` (`PY=.venv/bin/python` is what the scripts default to).
 pip install -e .[dev]
 pytest -q                                  # 194 CPU tests, no weights, ~5s
 pytest -q tests/test_positions.py::test_name  # one test
-pytest -m gpu -q                           # 42 tests: needs CUDA + weights + the archive
+pytest -m gpu -q                           # 63 tests: needs CUDA + weights + the archive
+pytest -m gpu -q -k "hf-llava and not next"  # one model at a time: three 7B-class models
+                                           # do not fit in 24 GB together
 ruff check src tests                       # line-length 110, py310
 ```
 

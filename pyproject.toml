@@ -24,6 +24,11 @@ dependencies = [
     "scipy",
     "safetensors",
     "huggingface_hub",
+    # The LLaVA-1.6 checkpoint's tokenizer files need these to load: without
+    # protobuf, transformers raises ImportError from the except clause that was
+    # meant to *handle* a load error, which masks the real one.
+    "protobuf",
+    "sentencepiece",
 ]
 
 [project.optional-dependencies]

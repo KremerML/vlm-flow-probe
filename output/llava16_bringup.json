@@ -1,0 +1,496 @@
+{
+ "model": "llava-hf/llava-v1.6-vicuna-7b-hf",
+ "n_layers": 32,
+ "d_model": 4096,
+ "image_grid_pinpoints": [
+  [
+   336,
+   672
+  ],
+  [
+   672,
+   336
+  ],
+  [
+   672,
+   672
+  ],
+  [
+   1008,
+   336
+  ],
+  [
+   336,
+   1008
+  ]
+ ],
+ "vision_feature_layer": -2,
+ "vision_feature_select_strategy": "default",
+ "samples": [
+  {
+   "q": "What color is the circle?",
+   "true": "blue",
+   "false": "red",
+   "generated": "Blue",
+   "margin_formatted": 7.9375,
+   "margin_nospace": 7.9375,
+   "margin_upper": 7.765380859375,
+   "lp_true_formatted": -11.15625,
+   "lp_true_nospace": -11.15625,
+   "lp_true_upper": -0.047119140625
+  },
+  {
+   "q": "What color is the triangle?",
+   "true": "blue",
+   "false": "red",
+   "generated": "Blue",
+   "margin_formatted": 6.9140625,
+   "margin_nospace": 6.9140625,
+   "margin_upper": 6.43603515625,
+   "lp_true_formatted": -11.4296875,
+   "lp_true_nospace": -11.4296875,
+   "lp_true_upper": -0.63427734375
+  },
+  {
+   "q": "What shape is the purple object?",
+   "true": "square",
+   "false": "triangle",
+   "generated": "Square",
+   "margin_formatted": 1.2265625,
+   "margin_nospace": 1.2265625,
+   "margin_upper": 1.155674934387207,
+   "lp_true_formatted": -9.3359375,
+   "lp_true_nospace": -9.3359375,
+   "lp_true_upper": -0.208984375
+  },
+  {
+   "q": "What shape is the black object?",
+   "true": "square",
+   "false": "circle",
+   "generated": "Square",
+   "margin_formatted": 8.4375,
+   "margin_nospace": 8.4375,
+   "margin_upper": 8.2862548828125,
+   "lp_true_formatted": -9.4375,
+   "lp_true_nospace": -9.4375,
+   "lp_true_upper": -0.1512451171875
+  },
+  {
+   "q": "What color is the circle?",
+   "true": "yellow",
+   "false": "blue",
+   "generated": "Yellow",
+   "margin_formatted": 8.8125,
+   "margin_nospace": 8.8125,
+   "margin_upper": 8.445441365242004,
+   "lp_true_formatted": -10.140625,
+   "lp_true_nospace": -10.140625,
+   "lp_true_upper": -0.0076836347579956055
+  },
+  {
+   "q": "What shape is the red object?",
+   "true": "square",
+   "false": "circle",
+   "generated": "Square",
+   "margin_formatted": 7.578125,
+   "margin_nospace": 7.578125,
+   "margin_upper": 7.45947265625,
+   "lp_true_formatted": -9.40625,
+   "lp_true_nospace": -9.40625,
+   "lp_true_upper": -0.23583984375
+  },
+  {
+   "q": "What shape is the green object?",
+   "true": "square",
+   "false": "circle",
+   "generated": "Square",
+   "margin_formatted": 7.9140625,
+   "margin_nospace": 7.9140625,
+   "margin_upper": 7.90765380859375,
+   "lp_true_formatted": -9.4140625,
+   "lp_true_nospace": -9.4140625,
+   "lp_true_upper": -0.09234619140625
+  },
+  {
+   "q": "What shape is the yellow object?",
+   "true": "circle",
+   "false": "square",
+   "generated": "Circle",
+   "margin_formatted": 8.7109375,
+   "margin_nospace": 8.7109375,
+   "margin_upper": 8.046142578125,
+   "lp_true_formatted": -8.9609375,
+   "lp_true_nospace": -8.9609375,
+   "lp_true_upper": -0.008544921875
+  },
+  {
+   "q": "What color is the square?",
+   "true": "yellow",
+   "false": "black",
+   "generated": "Yellow",
+   "margin_formatted": 4.71875,
+   "margin_nospace": 4.71875,
+   "margin_upper": 4.378840744495392,
+   "lp_true_formatted": -9.515625,
+   "lp_true_nospace": -9.515625,
+   "lp_true_upper": -0.09772175550460815
+  },
+  {
+   "q": "What color is the circle?",
+   "true": "purple",
+   "false": "yellow",
+   "generated": "Purple",
+   "margin_formatted": 10.480443477630615,
+   "margin_nospace": 10.480443477630615,
+   "margin_upper": 2.687182605266571,
+   "lp_true_formatted": -5.910181522369385,
+   "lp_true_nospace": -5.910181522369385,
+   "lp_true_upper": -0.03165388107299805
+  },
+  {
+   "q": "What shape is the yellow object?",
+   "true": "square",
+   "false": "circle",
+   "generated": "Square",
+   "margin_formatted": 8.5390625,
+   "margin_nospace": 8.5390625,
+   "margin_upper": 8.35516357421875,
+   "lp_true_formatted": -9.8984375,
+   "lp_true_nospace": -9.8984375,
+   "lp_true_upper": -0.09014892578125
+  },
+  {
+   "q": "What shape is the purple object?",
+   "true": "circle",
+   "false": "square",
+   "generated": "Circle",
+   "margin_formatted": 9.9765625,
+   "margin_nospace": 9.9765625,
+   "margin_upper": 9.164764404296875,
+   "lp_true_formatted": -8.9765625,
+   "lp_true_nospace": -8.9765625,
+   "lp_true_upper": -0.030548095703125
+  },
+  {
+   "q": "What color is the object that is NOT purple?",
+   "true": "yellow",
+   "false": "red",
+   "generated": "Yellow",
+   "margin_formatted": 8.5546875,
+   "margin_nospace": 8.5546875,
+   "margin_upper": 7.026701211929321,
+   "lp_true_formatted": -9.9609375,
+   "lp_true_nospace": -9.9609375,
+   "lp_true_upper": -0.02798628807067871
+  },
+  {
+   "q": "What color is the object that is NOT yellow?",
+   "true": "purple",
+   "false": "blue",
+   "generated": "Purple",
+   "margin_formatted": 8.109364748001099,
+   "margin_nospace": 8.109364748001099,
+   "margin_upper": 3.32687109708786,
+   "lp_true_formatted": -5.976572751998901,
+   "lp_true_nospace": -5.976572751998901,
+   "lp_true_upper": -0.028597652912139893
+  },
+  {
+   "q": "What color is the square?",
+   "true": "black",
+   "false": "blue",
+   "generated": "Black",
+   "margin_formatted": 6.2578125,
+   "margin_nospace": 6.2578125,
+   "margin_upper": 5.98504638671875,
+   "lp_true_formatted": -10.0078125,
+   "lp_true_nospace": -10.0078125,
+   "lp_true_upper": -0.08917236328125
+  },
+  {
+   "q": "What color is the triangle?",
+   "true": "green",
+   "false": "black",
+   "generated": "Green",
+   "margin_formatted": 1.5859375,
+   "margin_nospace": 1.5859375,
+   "margin_upper": 2.952301025390625,
+   "lp_true_formatted": -12.0390625,
+   "lp_true_nospace": -12.0390625,
+   "lp_true_upper": -0.057464599609375
+  },
+  {
+   "q": "What shape is the green object?",
+   "true": "triangle",
+   "false": "square",
+   "generated": "Triangle",
+   "margin_formatted": 7.7734375,
+   "margin_nospace": 7.7734375,
+   "margin_upper": 6.728938579559326,
+   "lp_true_formatted": -8.4296875,
+   "lp_true_nospace": -8.4296875,
+   "lp_true_upper": -0.024967670440673828
+  },
+  {
+   "q": "What shape is the black object?",
+   "true": "square",
+   "false": "circle",
+   "generated": "Square",
+   "margin_formatted": 8.578125,
+   "margin_nospace": 8.578125,
+   "margin_upper": 8.34423828125,
+   "lp_true_formatted": -9.5625,
+   "lp_true_nospace": -9.5625,
+   "lp_true_upper": -0.07763671875
+  },
+  {
+   "q": "What color is the object that is NOT black?",
+   "true": "green",
+   "false": "black",
+   "generated": "Green",
+   "margin_formatted": 4.1328125,
+   "margin_nospace": 4.1328125,
+   "margin_upper": 5.4064483642578125,
+   "lp_true_formatted": -12.5234375,
+   "lp_true_nospace": -12.5234375,
+   "lp_true_upper": -0.0115203857421875
+  },
+  {
+   "q": "What color is the object that is NOT green?",
+   "true": "black",
+   "false": "yellow",
+   "generated": "Black",
+   "margin_formatted": 8.0546875,
+   "margin_nospace": 8.0546875,
+   "margin_upper": 4.406655311584473,
+   "lp_true_formatted": -11.3046875,
+   "lp_true_nospace": -11.3046875,
+   "lp_true_upper": -0.031280517578125
+  },
+  {
+   "q": "What shape is the red object?",
+   "true": "triangle",
+   "false": "square",
+   "generated": "Triangle",
+   "margin_formatted": 7.8828125,
+   "margin_nospace": 7.8828125,
+   "margin_upper": 6.860960960388184,
+   "lp_true_formatted": -8.2578125,
+   "lp_true_nospace": -8.2578125,
+   "lp_true_upper": -0.017945289611816406
+  },
+  {
+   "q": "What shape is the purple object?",
+   "true": "square",
+   "false": "triangle",
+   "generated": "Square",
+   "margin_formatted": 3.8671875,
+   "margin_nospace": 3.8671875,
+   "margin_upper": 2.3355026245117188,
+   "lp_true_formatted": -9.28125,
+   "lp_true_nospace": -9.28125,
+   "lp_true_upper": -0.10125732421875
+  },
+  {
+   "q": "What shape is the blue object?",
+   "true": "triangle",
+   "false": "circle",
+   "generated": "Triangle",
+   "margin_formatted": 9.625,
+   "margin_nospace": 9.625,
+   "margin_upper": 8.260485887527466,
+   "lp_true_formatted": -8.46875,
+   "lp_true_nospace": -8.46875,
+   "lp_true_upper": -0.01295161247253418
+  },
+  {
+   "q": "What shape is the green object?",
+   "true": "triangle",
+   "false": "square",
+   "generated": "Triangle",
+   "margin_formatted": 10.8359375,
+   "margin_nospace": 10.8359375,
+   "margin_upper": 10.032838821411133,
+   "lp_true_formatted": -8.3359375,
+   "lp_true_nospace": -8.3359375,
+   "lp_true_upper": -0.014036178588867188
+  },
+  {
+   "q": "What color is the object that is NOT green?",
+   "true": "blue",
+   "false": "green",
+   "generated": "Blue",
+   "margin_formatted": 6.28125,
+   "margin_nospace": 6.28125,
+   "margin_upper": 5.43914794921875,
+   "lp_true_formatted": -11.5,
+   "lp_true_nospace": -11.5,
+   "lp_true_upper": -0.03350830078125
+  },
+  {
+   "q": "What color is the object that is NOT blue?",
+   "true": "green",
+   "false": "purple",
+   "generated": "Green",
+   "margin_formatted": -2.4998629093170166,
+   "margin_nospace": -2.4998629093170166,
+   "margin_upper": 5.036743879318237,
+   "lp_true_formatted": -13.0078125,
+   "lp_true_nospace": -13.0078125,
+   "lp_true_upper": -0.006244659423828125
+  },
+  {
+   "q": "What color is the triangle?",
+   "true": "purple",
+   "false": "green",
+   "generated": "Purple",
+   "margin_formatted": 10.035138726234436,
+   "margin_nospace": 10.035138726234436,
+   "margin_upper": 4.358302891254425,
+   "lp_true_formatted": -5.511736273765564,
+   "lp_true_nospace": -5.511736273765564,
+   "lp_true_upper": -0.04404085874557495
+  },
+  {
+   "q": "What shape is the yellow object?",
+   "true": "circle",
+   "false": "triangle",
+   "generated": "Circle",
+   "margin_formatted": 3.8046875,
+   "margin_nospace": 3.8046875,
+   "margin_upper": 2.4618091583251953,
+   "lp_true_formatted": -8.71875,
+   "lp_true_nospace": -8.71875,
+   "lp_true_upper": -0.0162353515625
+  },
+  {
+   "q": "What shape is the purple object?",
+   "true": "triangle",
+   "false": "square",
+   "generated": "Triangle",
+   "margin_formatted": 10.2265625,
+   "margin_nospace": 10.2265625,
+   "margin_upper": 9.290635585784912,
+   "lp_true_formatted": -8.3359375,
+   "lp_true_nospace": -8.3359375,
+   "lp_true_upper": -0.01405191421508789
+  },
+  {
+   "q": "What color is the triangle?",
+   "true": "blue",
+   "false": "green",
+   "generated": "Blue",
+   "margin_formatted": 7.03125,
+   "margin_nospace": 7.03125,
+   "margin_upper": 6.654380798339844,
+   "lp_true_formatted": -11.953125,
+   "lp_true_nospace": -11.953125,
+   "lp_true_upper": -0.00968170166015625
+  },
+  {
+   "q": "What shape is the blue object?",
+   "true": "triangle",
+   "false": "circle",
+   "generated": "Triangle",
+   "margin_formatted": 9.640625,
+   "margin_nospace": 9.640625,
+   "margin_upper": 7.952688455581665,
+   "lp_true_formatted": -8.21875,
+   "lp_true_nospace": -8.21875,
+   "lp_true_upper": -0.01606154441833496
+  },
+  {
+   "q": "What shape is the green object?",
+   "true": "circle",
+   "false": "square",
+   "generated": "Circle",
+   "margin_formatted": 12.4921875,
+   "margin_nospace": 12.4921875,
+   "margin_upper": 12.090126037597656,
+   "lp_true_formatted": -8.9609375,
+   "lp_true_nospace": -8.9609375,
+   "lp_true_upper": -0.01143646240234375
+  }
+ ],
+ "layout": {
+  "seq_len": 1235,
+  "n_image_tokens": 1176,
+  "image_span": [
+   35,
+   1211
+  ],
+  "question_span": [
+   1211,
+   1234
+  ],
+  "pixel_values_shape": [
+   1,
+   3,
+   3,
+   336,
+   336
+  ],
+  "image_sizes": [
+   [
+    224,
+    224
+   ]
+  ],
+  "cached_feature_rows": 1176,
+  "prompt": "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions. USER: <image>\nWhat color is the circle? \nAnswer the question using a single word or phrase. ASSISTANT:"
+ },
+ "feature_cache": {
+  "cached_forward_ms": 177.5991916656494,
+  "pixel_forward_ms": 194.9315071105957,
+  "speedup": 1.0975923104288465,
+  "max_abs_logit_diff": 0.0
+ },
+ "knockout": {
+  "0": 0.5234375,
+  "1": -0.2890625,
+  "2": 0.0546875,
+  "3": -0.046875,
+  "4": 0.0625,
+  "5": 0.2109375,
+  "6": -0.03125,
+  "7": -0.28125,
+  "8": 0.5703125,
+  "9": 0.0234375,
+  "10": 0.8984375,
+  "11": 2.046875,
+  "12": -0.4453125,
+  "13": -0.2890625,
+  "14": 0.6328125,
+  "15": 0.0703125,
+  "16": 0.453125,
+  "17": -0.3515625,
+  "18": 0.4453125,
+  "19": 0.265625,
+  "20": 0.2265625,
+  "21": 1.0234375,
+  "22": 0.15625,
+  "23": 0.0390625,
+  "24": 0.453125,
+  "25": 0.1875,
+  "26": -0.0625,
+  "27": 0.0078125,
+  "28": -0.1015625,
+  "29": -0.078125,
+  "30": 0.0234375,
+  "31": -0.0546875
+ },
+ "summary": {
+  "forced_choice_acc_formatted": 0.96875,
+  "mean_margin_formatted": 7.29736590757966,
+  "mean_margin_nospace": 7.29736590757966,
+  "mean_margin_upper": 6.40746346488595,
+  "mean_lp_true_formatted": -9.498048532754183,
+  "mean_lp_true_nospace": -9.498048532754183,
+  "mean_lp_true_upper": -0.07131845690310001,
+  "gen_matches_true_answer": 1.0,
+  "gen_is_capitalized": 1.0,
+  "forward_ms": 175.63772201538086,
+  "generate4_ms": 198.1416940689087,
+  "gpu": "NVIDIA GeForce RTX 4090"
+ }
+}

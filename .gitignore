@@ -11,7 +11,9 @@ dist/
 # --- data (regenerable; see README) ------------------------------------------
 # CLEVR-Lite regenerates deterministically: vfp-gen-clevr with the committed
 # config (seed 32) reproduces it exactly.
-datasets/
+# No trailing slash: locally this is often a symlink to the archive checkout's
+# copy, and "datasets/" would not match a symlink.
+datasets
 
 # --- bulk experiment artifacts ----------------------------------------------
 # Policy (carried from the archive repo): every large result JSON has a small

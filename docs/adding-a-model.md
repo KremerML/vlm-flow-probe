@@ -129,6 +129,43 @@ window, so the sliding mask is the causal mask. `vfp-verify-adapter --layer 0`
 (sliding) and `--layer 5` (global) both show the edit reaching the attention
 computation; `tests/test_hf_gemma3_adapter.py` pins the same pair.
 
+## The LLaVA-NeXT adapter (`hf-llava-next`)
+
+The cheap case: a second checkpoint of a model family the repo already
+supports. `HFLlavaNextAdapter` subclasses `HFLlavaAdapter` and inherits the
+prompt, the geometry, the answer form and the knockout install; what it
+overrides is the vision front-end. Three things there are worth knowing before
+adding a similar model.
+
+**AnyRes changes the token count, not the coordinate system.** The model tiles
+the image and concatenates a base view with unpadded high-res tiles, separating
+tile rows with a learned `image_newline` vector. A 224x224 CLEVR-Lite image
+becomes 1176 image tokens (576 + 576 + 24) against LLaVA-1.5's 576, and the
+prompt grows from 636 to 1235 tokens. The processor still materialises every
+one of them in `input_ids`, so the post-expansion rule holds and nothing in
+`positions.py` or `block_config.py` changes. Nothing hardcodes 1176 either:
+the count is whatever the processor produced, and the feature-cache check ties
+the cached feature rows to it.
+
+**Image preprocessing that the model owns must not be duplicated.** LLaVA-1.5's
+`expand2square` is a no-op on square images, so it would have been tempting to
+inherit it. AnyRes picks its tiling *from the image's own size*, so padding a
+non-square image would change the token count; the adapter raises on
+`adapter_options.pad_to_square` rather than accepting an option it ignores.
+`image_sizes` travels on `ModelBatch.extra` because the unpadding step needs
+the original size.
+
+**A tokenizer difference can move a span and rescale a metric.** The two
+checkpoints ship different tokenizer settings: 1.6 sets `add_prefix_space=True`.
+So the same prompt tail tokenises to 25 tokens after the image block on 1.5 and
+24 on 1.6, and the published `" " + answer` convention encodes as two tokens on
+1.5 (`[▁][▁blue]`) but one on 1.6 (`[▁blue]`) -- which, under per-token
+normalisation, scales absolute margins by about two between the models. Neither
+is a bug and neither is worked around; both are measured at bring-up and
+recorded (`docs/llava16_replication.md`). Check both when you add a checkpoint:
+`adapter.question_token_span` on a real sample, and
+`tokenizer.encode(adapter.answer_prefix + answer)`.
+
 ## Known risks
 
 **Qwen3-VL — DeepStack.** Qwen3-VL injects visual features at several layers
@@ -144,8 +181,14 @@ problem.
 
 ```bash
 pytest -m gpu -q                                  # the contract suite, on the real model
+pytest -m gpu -q -k "hf-llava and not next"       # one model at a time on a 24 GB card
 vfp-verify-adapter --config configs/experiments/<tag>/<cfg>.yaml
 ```
+
+Probes are cached for the session and the contract is parametrized as
+(check x adapter), so the whole `-m gpu` suite holds every adapter's model in
+memory at once -- three of them now, which does not fit in 24 GB. Select one
+model at a time locally; the full suite runs as-is on a cluster GPU.
 
 `vfp-verify-adapter` runs the same checks plus the end-to-end path —
 `build_inputs` → `forward` → `generate` → `sequence_logprob` on both options →
