@@ -40,28 +40,26 @@ def load_adapter(config):
 
 
 def load_sae(config, adapter, checkpoint_path):
-    """Build SparseAutoencoder, load checkpoint, move to the adapter's device.
+    """Load a dictionary checkpoint and move it to the adapter's device.
 
-    ``d_model`` comes from the checkpoint itself (encoder weight shape) and is
-    asserted against the adapter — a mismatched SAE fails here, not layers deep
-    in a hook.
+    The architecture (L1/ReLU or JumpReLU) and the dimensions come from the
+    checkpoint itself; ``d_in`` is asserted against the adapter's width at the
+    configured site -- a mismatched SAE fails here, not layers deep in a hook.
     """
-    from vlmflowprobe.core.sparse_autoencoder import SparseAutoencoder
+    from vlmflowprobe.core.sparse_autoencoder import build_sae_from_state, sae_state_from_checkpoint
 
     ckpt = torch.load(checkpoint_path, map_location="cpu")
-    state = ckpt.get("state", {}).get("sae_state", ckpt)
-    n_features, d_model = state["encoder.weight"].shape
-    if d_model != adapter.d_model:
+    state = sae_state_from_checkpoint(ckpt)
+    _, d_in = state["encoder.weight"].shape
+    model_cfg = config.get("model", {})
+    site = model_cfg.get("activation_site", "residual")
+    expected = adapter.site_dim(int(model_cfg.get("target_layer", 0)), site)
+    if int(d_in) != int(expected):
         raise ValueError(
-            f"SAE checkpoint {checkpoint_path} has d_model={d_model} but the "
-            f"adapter's model has d_model={adapter.d_model}"
+            f"SAE checkpoint {checkpoint_path} has d_in={d_in} but the adapter's "
+            f"{site!r} site is {expected} wide"
         )
-    sae = SparseAutoencoder(
-        d_model=int(d_model),
-        n_features=int(n_features),
-        l1_coeff=config.get("sae", {}).get("l1_coeff", 1e-3),
-    )
-    sae.load_state_dict(state)
+    sae = build_sae_from_state(state, l1_coeff=config.get("sae", {}).get("l1_coeff", 1e-3))
     train_cfg = config.get("training", {})
     sae.to(
         device=adapter.device,

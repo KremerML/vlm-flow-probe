@@ -1,0 +1,21 @@
+# Pre-trained dictionaries: Gemma Scope 2 attention SAEs for gemma-3-4b-it,
+# one per layer, 16k features (8x over the 2048-wide o_proj input), JumpReLU,
+# the "big" L0 target (60-120 depending on layer). Imported by vfp-import-sae;
+# nothing here is trained. training.* is kept only for the dtype the loaders
+# read and the position_type stamped into metadata.
+sae:
+  n_features: 16384
+  pretrained:
+    source: "gemma-scope-2"
+    repo: "google/gemma-scope-2-4b-it"
+    folder: "attn_out_all"
+    width: "16k"
+    l0: "big"
+training:
+  dtype: "float32"
+  position_type: "question"
+  seed: 42
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false

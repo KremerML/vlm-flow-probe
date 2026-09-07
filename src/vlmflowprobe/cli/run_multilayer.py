@@ -54,7 +54,10 @@ from vlmflowprobe.ablation.sample_cache import (  # noqa: E402
     save_sample_cache,
 )
 from vlmflowprobe.core.config import load_config  # noqa: E402
-from vlmflowprobe.core.sparse_autoencoder import SparseAutoencoder  # noqa: E402
+from vlmflowprobe.core.sparse_autoencoder import (  # noqa: E402
+    build_sae_from_state,
+    sae_state_from_checkpoint,
+)
 from vlmflowprobe.cli.distill_results import distill_condition_samples  # noqa: E402
 from vlmflowprobe.data.datasets import build_dataset  # noqa: E402
 from vlmflowprobe.utils.config_utils import resolve_dtype  # noqa: E402
@@ -405,26 +408,26 @@ def load_multilayer_saes(config, adapter):
     dtype = resolve_dtype(ml_cfg.get("sae_dtype", "float32"))
     device = adapter.device if adapter is not None else "cpu"
 
+    site = config.get("model", {}).get("activation_site", "attn_out")
     saes = {}
     for layer in ml_cfg.get("layers", []):
         layer = int(layer)
         path = ml_cfg["sae_paths"][layer]
-        checkpoint = torch_load(path)
-        state = checkpoint.get("state", {})
-        sae_state = state.get("sae_state", checkpoint)
-        # Take dimensions from the checkpoint rather than the config: with one config
-        # covering several layers there is no single n_features to read.
-        n_features, d_model = sae_state["encoder.weight"].shape
-        sae = SparseAutoencoder(
-            d_model=int(d_model),
-            n_features=int(n_features),
-            l1_coeff=float(config.get("sae", {}).get("l1_coeff", 1e-3)),
-        )
-        sae.load_state_dict(sae_state)
+        sae_state = sae_state_from_checkpoint(torch_load(path))
+        # Take dimensions (and the architecture) from the checkpoint rather than the
+        # config: with one config covering several layers there is no single
+        # n_features to read.
+        n_features, d_in = sae_state["encoder.weight"].shape
+        if adapter is not None and int(d_in) != int(adapter.site_dim(layer, site)):
+            raise ValueError(
+                f"layer {layer}: SAE {path} has d_in={d_in} but site {site!r} is "
+                f"{adapter.site_dim(layer, site)} wide"
+            )
+        sae = build_sae_from_state(sae_state, l1_coeff=config.get("sae", {}).get("l1_coeff", 1e-3))
         sae.to(device=device, dtype=dtype)
         sae.eval()
         saes[layer] = sae
-        print(f"[multilayer] layer {layer}: SAE {n_features}x{d_model} from {path}")
+        print(f"[multilayer] layer {layer}: {type(sae).__name__} {n_features}x{d_in} from {path}")
     return saes
 
 

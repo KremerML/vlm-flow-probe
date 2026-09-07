@@ -22,6 +22,8 @@ dependencies = [
     "pyyaml",
     "tqdm",
     "scipy",
+    "safetensors",
+    "huggingface_hub",
 ]
 
 [project.optional-dependencies]
@@ -31,6 +33,7 @@ plots = ["matplotlib"]
 [project.scripts]
 vfp-knockout = "vlmflowprobe.cli.knockout_sweep:main"
 vfp-train-sae = "vlmflowprobe.cli.train_sae:main"
+vfp-import-sae = "vlmflowprobe.cli.import_sae:main"
 vfp-identify = "vlmflowprobe.cli.identify_features:main"
 vfp-ablate = "vlmflowprobe.cli.run_ablation:main"
 vfp-analyze = "vlmflowprobe.cli.analyze_results:main"

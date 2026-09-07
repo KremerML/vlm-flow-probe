@@ -123,67 +123,9 @@ def _take_rows(activations: torch.Tensor, row_indices: Sequence[int]) -> torch.T
     return activations.index_select(0, index_tensor)
 
 
-def _compute_reconstruction_metrics(sae, activations: torch.Tensor, batch_size: int = 512) -> Dict[str, Any]:
-    """Reconstruction + sparsity health metrics (MSE, FVU, L0, dead fraction)."""
-    if activations.numel() == 0:
-        return {
-            "rows": 0,
-            "mse": 0.0,
-            "normalized_mse": None,
-            "explained_variance": None,
-            "mean_l0": 0.0,
-            "dead_feature_fraction": 1.0,
-        }
-
-    sae.eval()
-    param = next(sae.parameters())
-    eval_batch_size = max(1, int(batch_size))
-
-    total_se = 0.0
-    total_sum = 0.0
-    total_sum2 = 0.0
-    total_values = 0
-    total_l0 = 0.0
-    total_rows = 0
-    active_feature_mask = torch.zeros(sae.n_features, dtype=torch.bool, device=param.device)
-
-    with torch.no_grad():
-        for start in range(0, activations.shape[0], eval_batch_size):
-            batch = activations[start: start + eval_batch_size]
-            if batch.device != param.device or batch.dtype != param.dtype:
-                batch = batch.to(device=param.device, dtype=param.dtype)
-
-            recon, feats = sae.forward(batch)
-            error = recon - batch
-            total_se += torch.sum(error * error).item()
-            total_sum += batch.sum().item()
-            total_sum2 += torch.sum(batch * batch).item()
-            total_values += int(batch.numel())
-
-            feature_on = feats > 0
-            total_l0 += feature_on.sum(dim=1).float().sum().item()
-            total_rows += int(feature_on.shape[0])
-            active_feature_mask |= feature_on.any(dim=0)
-
-    mse = float(total_se / max(1, total_values))
-    mean_value = float(total_sum / max(1, total_values))
-    variance = max(float((total_sum2 / max(1, total_values)) - mean_value * mean_value), 0.0)
-
-    if variance <= 1e-12:
-        normalized_mse = None
-        explained_variance = None
-    else:
-        normalized_mse = float(mse / variance)
-        explained_variance = float(1.0 - normalized_mse)
-
-    return {
-        "rows": int(activations.shape[0]),
-        "mse": mse,
-        "normalized_mse": normalized_mse,
-        "explained_variance": explained_variance,
-        "mean_l0": float(total_l0 / max(1, total_rows)),
-        "dead_feature_fraction": float(1.0 - active_feature_mask.float().mean().item()),
-    }
+from vlmflowprobe.training.sae_validation import (  # noqa: E402
+    compute_reconstruction_metrics as _compute_reconstruction_metrics,
+)
 
 
 def main() -> None:
