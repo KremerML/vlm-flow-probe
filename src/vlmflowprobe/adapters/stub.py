@@ -3,7 +3,10 @@
 Wraps any tiny ``nn.Module`` exposing ``.layers`` (a ModuleList) and
 optionally ``.generate``/``.forward`` with the archive test-suite calling
 conventions. Token geometry is configured, not computed, so tests can pin
-exact positions. Knockout installs are recorded, never applied — tests assert
+exact positions — except when ``image_token_id`` is given, which switches image
+geometry to the derived-from-``input_ids`` form a real adapter uses, so the
+contract suite (``adapters.contract``) can exercise the same failure paths on
+CPU. Knockout installs are recorded, never applied — tests assert
 install/remove pairing and payloads.
 """
 
@@ -44,6 +47,7 @@ class StubAdapter(ModelAdapter):
         seq_tokens: Sequence[int] = (1, 2, 3),
         question_span: Sequence[int] = (1,),
         image_span: range = range(0, 0),
+        image_token_id: Optional[int] = None,
         model_cfg: Optional[dict] = None,
     ):
         super().__init__(model_cfg)
@@ -52,6 +56,8 @@ class StubAdapter(ModelAdapter):
         self._seq_tokens = list(seq_tokens)
         self._question_span = list(question_span)
         self._image_span = image_span
+        #: When set, image geometry is derived from input_ids instead of configured.
+        self._image_token_id = image_token_id
         #: every install/remove, for assertions: ("install", block_config, flow_target)
         #: and ("remove", handle).
         self.knockout_log: List[tuple] = []
@@ -96,7 +102,12 @@ class StubAdapter(ModelAdapter):
     # ------------------------------------------------------------------ inputs
     def build_inputs(self, question: str, image: Any = None) -> ModelBatch:
         input_ids = torch.tensor([self._seq_tokens], dtype=torch.long, device=self.device)
-        return ModelBatch(input_ids=input_ids, prompt=question, question=question)
+        # A placeholder tensor, never consumed: its presence is what tells the
+        # geometry checks that this batch claims to carry an image.
+        pixel_values = None if image is None else torch.zeros(1, 1, device=self.device)
+        return ModelBatch(
+            input_ids=input_ids, pixel_values=pixel_values, prompt=question, question=question
+        )
 
     # ------------------------------------------------------------------ execution
     def forward(self, batch: ModelBatch, extra_input_ids: Optional[torch.Tensor] = None) -> torch.Tensor:
@@ -120,11 +131,30 @@ class StubAdapter(ModelAdapter):
         return GenResult(sequences=out["sequences"], first_token_scores=out["scores"][0])
 
     # ------------------------------------------------------------------ geometry
+    def _derived_image_positions(self, batch: ModelBatch) -> List[int]:
+        ids = batch.input_ids[0].tolist()
+        return [i for i, token in enumerate(ids) if token == self._image_token_id]
+
     def n_image_tokens(self, batch: ModelBatch) -> int:
-        return len(self._image_span)
+        if self._image_token_id is None:
+            return len(self._image_span)
+        positions = self._derived_image_positions(batch)
+        if not positions and batch.pixel_values is not None:
+            raise AdapterContractError(
+                "batch has pixel_values but no image tokens in input_ids"
+            )
+        return len(positions)
 
     def image_token_span(self, batch: ModelBatch) -> range:
-        return self._image_span
+        if self._image_token_id is None:
+            return self._image_span
+        positions = self._derived_image_positions(batch)
+        if not positions:
+            raise AdapterContractError("no image tokens in batch")
+        start, stop = positions[0], positions[-1] + 1
+        if positions != list(range(start, stop)):
+            raise AdapterContractError("image tokens are not contiguous")
+        return range(start, stop)
 
     def question_token_span(self, batch: ModelBatch) -> List[int]:
         return list(self._question_span)

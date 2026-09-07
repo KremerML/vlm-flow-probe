@@ -1,25 +1,21 @@
-"""GPU checks for the HF-LLaVA adapter (pytest -m gpu).
+"""LLaVA-specific GPU checks (pytest -m gpu).
 
-Loads the real `llava-hf/llava-1.5-7b-hf` and a CLEVR-Lite sample from the
-archive repo. Deselected by default; needs CUDA, the cached weights, and the
-archive checkout (VFP_ARCHIVE_ROOT, defaulting to the sibling clone).
+The model-agnostic invariants are in test_adapter_contract.py, which runs the
+same suite against this adapter under the same mark. What is left here is what
+only LLaVA-1.5 can be checked for: the byte-exact archive prompt, 576 image
+tokens, and question spans equal to the archived positions.
+
+Shares one loaded model with the contract suite via ``tests.probes`` — two
+independent 7B loads do not fit in 24 GB. Needs CUDA, the cached weights, and
+the archive checkout (VFP_ARCHIVE_ROOT, defaulting to the sibling clone).
 """
 
 import json
-import os
-from pathlib import Path
 
 import pytest
 
-torch = pytest.importorskip("torch")
+from tests.probes import ARCHIVE, cached, clevr_dataset, hf_llava_probe
 
-ARCHIVE = Path(
-    os.environ.get(
-        "VFP_ARCHIVE_ROOT",
-        Path.home() / "Documents/Github/cross-modal-information-flow-in-MLLM",
-    )
-)
-CLEVR = ARCHIVE / "datasets/clevr_lite"
 SAMPLE_CACHE = (
     ARCHIVE
     / "output/sae_experiments/multilayer_clevr_lite_l10-14_attn_out_question/sample_cache.json"
@@ -35,30 +31,25 @@ EXPECTED_PROMPT = (
 
 
 @pytest.fixture(scope="module")
-def adapter():
-    if not torch.cuda.is_available():
-        pytest.skip("needs CUDA")
-    from vlmflowprobe.adapters.registry import create_adapter
+def probe():
+    return cached(hf_llava_probe)
 
-    adapter = create_adapter({"adapter": "hf-llava", "name": "llava-hf/llava-1.5-7b-hf"})
-    adapter.load()
-    return adapter
+
+@pytest.fixture(scope="module")
+def adapter(probe):
+    return probe.adapter
 
 
 @pytest.fixture(scope="module")
 def dataset():
-    if not CLEVR.exists():
-        pytest.skip(f"CLEVR-Lite not found at {CLEVR}")
-    from vlmflowprobe.data.datasets import CLEVRLiteVQADataset
-
-    return CLEVRLiteVQADataset(data_dir=str(CLEVR), split="val")
+    return clevr_dataset()
 
 
 @pytest.fixture(scope="module")
-def batch(adapter, dataset):
+def batch(probe, dataset):
     line = dataset.questions[0]
     detail = dataset.dataset_dict[line["q_id"]]
-    return adapter.build_inputs(detail["question"], dataset.load_image(line)), line, detail
+    return probe.batch(), line, detail
 
 
 def test_static_properties(adapter):
@@ -103,25 +94,3 @@ def test_question_span_matches_archived_positions(adapter, dataset):
         assert adapter.question_token_span(b) == rec["positions"], line["q_id"]
         checked += 1
     assert checked > 0, "no overlapping question ids with the archived cache"
-
-
-def test_knockout_changes_margin(batch, adapter):
-    from vlmflowprobe.knockout.block_config import build_block_config, flow_block_pairs
-    from vlmflowprobe.knockout.scoring import sequence_logprob
-
-    b, _, detail = batch
-    true_opt = detail["true option"].strip()
-
-    base = sequence_logprob(adapter, b, true_opt)
-    pairs = flow_block_pairs("Image->Question", b, adapter)
-    assert pairs, "no block pairs resolved"
-    blocked = sequence_logprob(
-        adapter, b, true_opt,
-        block_config=build_block_config(0, adapter.n_layers, 1, pairs),
-        flow_target="Question",
-    )
-    assert base is not None and blocked is not None
-    assert abs(base - blocked) > 1e-4, "knockout at layer 0 had no measurable effect"
-    # cleanup left no hooks behind
-    for layer in adapter._decoder_layers():
-        assert len(layer._forward_pre_hooks) == 0

@@ -42,6 +42,7 @@ vfp-gen-clevr = "vlmflowprobe.cli.generate_clevr_lite:main"
 vfp-controls = "vlmflowprobe.cli.run_controls:main"
 vfp-analyze-controls = "vlmflowprobe.cli.analyze_controls:main"
 vfp-gate = "vlmflowprobe.cli.verify_equivalence:main"
+vfp-verify-adapter = "vlmflowprobe.cli.verify_adapter:main"
 vfp-smoke-controls = "vlmflowprobe.cli.smoke_matched_controls:main"
 
 [tool.setuptools.packages.find]

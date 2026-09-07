@@ -82,6 +82,21 @@ class ModelAdapter(ABC):
 
     #: registry key; subclasses override.
     name: str = "base"
+    #: What ``sequence_logprob`` puts between the prompt and an answer. A space
+    #: for prompts ending in ``ASSISTANT:``-style labels, empty for prompts
+    #: ending in a newline (Gemma's ``model\n``).
+    answer_prefix: str = " "
+
+    def format_answer(self, answer: str) -> str:
+        """The surface form an answer option takes in this model's output.
+
+        The datasets carry lowercase options; LLaVA answers lowercase, Gemma
+        capitalizes (``Blue``, and scores ``blue`` sixteen nats lower). Every
+        place an option is tokenized -- ``sequence_logprob``, the causal
+        identifier's target logits, the generation-accuracy token -- goes
+        through this so the convention is set once, in the adapter.
+        """
+        return answer.strip()
 
     def __init__(self, model_cfg: Optional[Dict[str, Any]] = None):
         self.model_cfg: Dict[str, Any] = dict(model_cfg or {})
@@ -167,6 +182,16 @@ class ModelAdapter(ABC):
     @abstractmethod
     def _decoder_layers(self) -> Sequence[nn.Module]:
         """The model's decoder layers, indexable by layer number."""
+
+    def site_dim(self, layer: int, site: str) -> int:
+        """Width of the tensor ``layer_module(layer, site)`` emits.
+
+        ``d_model`` for every site the base class knows; adapters exposing a
+        narrower site (Gemma's pre-``o_proj`` ``attn_z``) override it, and the
+        SAE loaders check a dictionary's ``d_in`` against this rather than
+        against ``d_model``.
+        """
+        return self.d_model
 
     def layer_module(self, layer: int, site: str) -> nn.Module:
         """Module to hook for an activation site at a layer.

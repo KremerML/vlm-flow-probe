@@ -90,6 +90,9 @@ class CausalFeatureIdentifier:
             detail = self.dataset.dataset_dict[line["q_id"]]
             true_answer = detail.get("true option", detail.get("answer", "")).strip()
             false_answer = detail.get("false option", "").strip()
+            # The surface form the model emits (Gemma capitalizes); LLaVA's is the identity.
+            true_answer = self.adapter.format_answer(true_answer)
+            false_answer = self.adapter.format_answer(false_answer) if false_answer else ""
 
             true_ids = tokenizer.encode(true_answer, add_special_tokens=False)
             if not true_ids:

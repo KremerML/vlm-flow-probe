@@ -523,11 +523,10 @@ class FeatureAblator:
         out[:, positions, :] = replaced[:, positions, :]
         return out
 
-    @staticmethod
-    def _get_answer_token_id(answer: str, tokenizer) -> Optional[int]:
+    def _get_answer_token_id(self, answer: str, tokenizer) -> Optional[int]:
         if not answer or tokenizer is None:
             return None
-        token_ids = tokenizer.encode(answer, add_special_tokens=False)
+        token_ids = tokenizer.encode(self.adapter.format_answer(answer), add_special_tokens=False)
         if not token_ids:
             return None
         return token_ids[0]

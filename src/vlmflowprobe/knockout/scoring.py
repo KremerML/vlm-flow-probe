@@ -5,9 +5,11 @@
 
 Two conventions are load-bearing and deliberately preserved from the archive:
 
-* the answer is encoded as ``" " + answer.strip()`` with
-  ``add_special_tokens=False`` (the leading space keeps BPE tokenization
-  consistent with the answer's in-context form);
+* the answer is encoded as ``adapter.answer_prefix + adapter.format_answer(answer)`` with
+  ``add_special_tokens=False``. The prefix is ``" "`` for LLaVA (the leading
+  space keeps BPE tokenization consistent with the answer's in-context form
+  after ``ASSISTANT:``) and ``""`` for Gemma, whose generation prompt ends in
+  a newline;
 * the logit at position ``p`` predicts token ``p+1``, so answer token ``i``
   is scored at index ``answer_start + i − 1``.
 """
@@ -35,7 +37,9 @@ def sequence_logprob(
     """
     if not answer_text:
         return None
-    answer_ids = adapter.tokenizer.encode(f" {answer_text.strip()}", add_special_tokens=False)
+    prefix = getattr(adapter, "answer_prefix", " ")
+    surface = adapter.format_answer(answer_text) if hasattr(adapter, "format_answer") else answer_text.strip()
+    answer_ids = adapter.tokenizer.encode(f"{prefix}{surface}", add_special_tokens=False)
     if not answer_ids:
         return None
     answer_tensor = torch.tensor(
