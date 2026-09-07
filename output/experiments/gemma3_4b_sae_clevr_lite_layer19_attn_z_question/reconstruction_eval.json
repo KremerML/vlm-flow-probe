@@ -1,0 +1,12 @@
+{
+  "task": {
+    "rows": 203245,
+    "mse": 0.016292891753063293,
+    "normalized_mse": 0.19457461655514843,
+    "explained_variance": 0.8054253834448516,
+    "mean_l0": 116.70940490540973,
+    "dead_feature_fraction": 0.65924072265625,
+    "empty_row_fraction": 0.0,
+    "source": "output/activations/gemma3_4b_clevr_lite_val_attn_z"
+  }
+}

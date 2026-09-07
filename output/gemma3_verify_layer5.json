@@ -1,0 +1,319 @@
+{
+ "adapter": "hf-gemma3",
+ "model": "google/gemma-3-4b-it",
+ "n_layers": 34,
+ "d_model": 2560,
+ "knockout_layer": 5,
+ "question": "What color is the circle?",
+ "checks": [
+  {
+   "name": "residual_site_is_the_decoder_layer",
+   "group": "modules",
+   "passed": true,
+   "detail": "34 decoder layers"
+  },
+  {
+   "name": "unknown_site_raises",
+   "group": "modules",
+   "passed": true,
+   "detail": "unknown site rejected"
+  },
+  {
+   "name": "out_of_range_layer_raises",
+   "group": "modules",
+   "passed": true,
+   "detail": "rejects layers outside [0, 34)"
+  },
+  {
+   "name": "seq_len_matches_input_ids",
+   "group": "geometry",
+   "passed": true,
+   "detail": "seq_len 286"
+  },
+  {
+   "name": "image_span_is_post_expansion",
+   "group": "geometry",
+   "passed": true,
+   "detail": "256 image tokens at [5, 261)"
+  },
+  {
+   "name": "question_span_is_in_bounds",
+   "group": "geometry",
+   "passed": true,
+   "detail": "25 positions at [261, 285]"
+  },
+  {
+   "name": "last_token_index",
+   "group": "geometry",
+   "passed": true,
+   "detail": "index 285"
+  },
+  {
+   "name": "answer_start_index",
+   "group": "geometry",
+   "passed": true,
+   "detail": "index 286"
+  },
+  {
+   "name": "n_image_tokens_never_silently_zero",
+   "group": "geometry",
+   "passed": true,
+   "detail": "raises on a batch with pixel values but no image tokens"
+  },
+  {
+   "name": "forward_appends_extra_input_ids",
+   "group": "execution",
+   "passed": true,
+   "detail": "logits (1, 288, 262208)"
+  },
+  {
+   "name": "generate_returns_new_tokens_only",
+   "group": "execution",
+   "passed": true,
+   "detail": "1 new token(s), scores (1, 262208)"
+  },
+  {
+   "name": "knockout_install_remove_balanced",
+   "group": "knockout",
+   "passed": true,
+   "detail": "hooks 0 -> 1 -> 0"
+  },
+  {
+   "name": "knockout_removed_on_exception",
+   "group": "knockout",
+   "passed": true,
+   "detail": "context manager removed hooks on the error path"
+  },
+  {
+   "name": "sequence_logprob_scores_both_options",
+   "group": "end_to_end",
+   "passed": true,
+   "detail": "margin +25.5207 ('blue' vs 'red')"
+  },
+  {
+   "name": "knockout_moves_the_margin",
+   "group": "end_to_end",
+   "passed": true,
+   "detail": "margin +25.5207 -> +25.8931 at layer 5"
+  }
+ ],
+ "passed": true,
+ "provenance": {
+  "timestamp": "2026-09-06T21:14:04+0200",
+  "git_sha": "b05e52ea4d1612653cdc2b469f6cdb961f0c8cc3",
+  "git_dirty": true,
+  "argv": [
+   "/gpfs/home2/rkremer/vlm-flow-probe/.venv/bin/vfp-verify-adapter",
+   "--config",
+   "configs/experiments/gemma3_4b/knockout_clevr_lite.yaml",
+   "--layer",
+   "5",
+   "--json",
+   "output/gemma3_verify_layer5.json"
+  ],
+  "python": "3.12.3",
+  "hostname": "gcn46.local.snellius.surf.nl",
+  "vlmflowprobe": "0.1.0",
+  "torch": "2.14.0+cu130",
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "transformers": "4.57.6",
+  "resolved_config": {
+   "model": {
+    "adapter": "hf-gemma3",
+    "name": "google/gemma-3-4b-it",
+    "tag": "gemma3_4b",
+    "dtype": "bfloat16",
+    "target_layer": 12,
+    "activation_site": "attn_z",
+    "adapter_options": {
+     "pad_to_square": true
+    }
+   },
+   "sae": {
+    "n_features": 32768,
+    "l1_coeff": 0.001
+   },
+   "training": {
+    "batch_size": 32,
+    "learning_rate": 0.0001,
+    "epochs": 10,
+    "seed": 42,
+    "dtype": "float32",
+    "position_type": "question"
+   },
+   "reproducibility": {
+    "seed": 42,
+    "deterministic": true,
+    "benchmark": false
+   },
+   "experiment": {
+    "output_dir": null,
+    "output_base": "output/experiments",
+    "name": "gemma3_4b_knockout_clevr_lite",
+    "use_timestamp": false,
+    "require_model_tag": true
+   },
+   "dataset": {
+    "format": "clevr_lite",
+    "data_dir": "datasets/clevr_lite",
+    "split": "val",
+    "filter_held_out": null
+   },
+   "feature_identification": {
+    "discrimination_threshold": 2.0,
+    "min_activation": 0.1,
+    "top_k": 50,
+    "min_diff": 0.0,
+    "aggregation": "mean",
+    "selection_method": "ratio",
+    "candidate_pool_k": 200,
+    "causal_scores_path": null,
+    "position_type": "question",
+    "correctness_metric": "option_logprob",
+    "logprob_normalize": true,
+    "batch_size": 256,
+    "fallback": {
+     "discrimination_threshold": 1.1,
+     "min_activation": 0.0,
+     "min_diff": 0.0
+    }
+   },
+   "ablation": {
+    "n_random_features": 50,
+    "n_bootstrap": 1000,
+    "n_random_sets": 1,
+    "random_sampling": "uniform",
+    "position_type": "question",
+    "mode": "residual",
+    "delta_scale": 1.0,
+    "operation": "zero",
+    "operation_scale": 1.0
+   },
+   "random_control": {
+    "n_random_sets": 1,
+    "sampling": "uniform",
+    "seed": 42,
+    "matched_metric": "activation_mean",
+    "strict_matching": true
+   },
+   "evaluation": {
+    "significance_level": 0.05,
+    "primary_metric": "pred_token_prob",
+    "logprob_normalize": true
+   },
+   "sae_reuse": {
+    "recon_threshold": 0.1,
+    "kl_threshold": 0.5,
+    "allow_missing_stats": true,
+    "sample_size": 256,
+    "search_paths": [
+     "output/experiments"
+    ]
+   },
+   "knockout": {
+    "flows": [
+     "Image->Question",
+     "Image->Last"
+    ],
+    "window": 1,
+    "filter_correct": true,
+    "normalize_logprob": true,
+    "max_samples": null,
+    "top_k_layers": 5,
+    "batch_size": 1,
+    "num_workers": 2,
+    "output_subdir": "knockout"
+   },
+   "multilayer": {
+    "layers": [
+     10,
+     11,
+     12,
+     13,
+     14
+    ],
+    "excluded_layers": [
+     0
+    ],
+    "encode_mode": "live",
+    "encode_positions_only": true,
+    "features_per_layer": 200,
+    "sae_dtype": "float32",
+    "sae_paths": {},
+    "catalog_paths": {},
+    "stats_paths": {}
+   },
+   "conditions": {
+    "gate": true,
+    "primary": true,
+    "a0_regression_layer": 11,
+    "nested": [
+     [
+      14
+     ],
+     [
+      13,
+      14
+     ],
+     [
+      12,
+      13,
+      14
+     ],
+     [
+      11,
+      12,
+      13,
+      14
+     ],
+     [
+      10,
+      11,
+      12,
+      13,
+      14
+     ]
+    ],
+    "non_nested": [
+     [
+      10,
+      12,
+      14
+     ],
+     [
+      10,
+      11,
+      12
+     ]
+    ],
+    "leave_one_out": true,
+    "span_knockout": true,
+    "budget_matched": {
+     "spread_per_layer": 40,
+     "concentrated_layer": 11,
+     "concentrated_k": [
+      40,
+      100,
+      200,
+      400,
+      800
+     ]
+    },
+    "downstream_knockout": {
+     "anchor_layers": [
+      11,
+      14
+     ],
+     "downstream_to": 31
+    },
+    "sensitivity_span": [
+     10,
+     11,
+     12,
+     14
+    ]
+   },
+   "frozen": false
+  }
+ }
+}
