@@ -64,8 +64,10 @@ def main() -> None:
           f"position_type={position_type}, target={args.target}")
     print(f"  n_items={n_items}, processing={effective_n}")
 
+    error_term = bool(feat_cfg.get("error_term", False))
+    print(f"  error_term={error_term}")
     identifier = CausalFeatureIdentifier(
-        sae, adapter, dataset, target_layer, activation_site=activation_site,
+        sae, adapter, dataset, target_layer, activation_site=activation_site, error_term=error_term,
     )
     feature_stats = identifier.compute_causal_scores(
         position_type=position_type,

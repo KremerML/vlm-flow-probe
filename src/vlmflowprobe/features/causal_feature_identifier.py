@@ -30,12 +30,20 @@ class CausalFeatureIdentifier:
         dataset,
         layer_idx: int,
         activation_site: str = "attn_out",
+        error_term: bool = False,
     ):
         self.sae = sae
         self.adapter = adapter
         self.dataset = dataset
         self.layer_idx = layer_idx
         self.activation_site = activation_site
+        # With the error term (Marks et al. 2024, the SAE-error node), the hooked
+        # activation is decode(z) + (x - decode(z)).detach(): the forward pass is the
+        # unmodified model's and gradients still flow to z. Without it the model is
+        # scored through the dictionary's reconstruction, which is what the LLaVA runs
+        # did (their dictionaries reconstructed at >99.8% explained variance) and what
+        # every archived catalog was built from -- so the default stays False.
+        self.error_term = bool(error_term)
         self.feature_stats: Dict[int, Dict[str, float]] = {}
         self.summary: Optional[Dict[str, Any]] = None
 
@@ -111,28 +119,8 @@ class CausalFeatureIdentifier:
             )
 
             features_buffer: Dict[str, Any] = {}
-            sae_ref = self.sae
-
-            def sae_hook(module, inp, output):
-                acts = output[0] if isinstance(output, (tuple, list)) else output
-                acts_sae = acts.to(
-                    sae_ref.encoder.weight.device,
-                    dtype=sae_ref.encoder.weight.dtype,
-                )
-                z_raw = sae_ref.encode(acts_sae)
-                z = z_raw.detach().requires_grad_(True)
-                z.retain_grad()
-                features_buffer["z"] = z
-                recon = sae_ref.decode(z)
-                recon = recon.to(acts.device, dtype=acts.dtype)
-                if recon.shape != acts.shape:
-                    recon = recon.view_as(acts)
-                if isinstance(output, (tuple, list)):
-                    return (recon,) + output[1:]
-                return recon
-
             layer_module = self.adapter.layer_module(self.layer_idx, self.activation_site)
-            handle = layer_module.register_forward_hook(sae_hook)
+            handle = layer_module.register_forward_hook(self.make_splice_hook(features_buffer))
 
             try:
                 with torch.enable_grad():
@@ -214,11 +202,39 @@ class CausalFeatureIdentifier:
             "n_features": n_features,
             "target": target,
             "position_type": position_type,
+            "error_term": self.error_term,
             "causal_score": _percentile_stats(causal_scores),
             "activation_mean": _percentile_stats(act_means),
             "gradient_mean": _percentile_stats(grad_means),
         }
         return self.feature_stats
+
+    def make_splice_hook(self, features_buffer: Dict[str, Any]):
+        """Forward hook splicing the dictionary into the pass, leaving ``z`` in the buffer."""
+        sae_ref = self.sae
+        error_term = self.error_term
+
+        def sae_hook(module, inp, output):
+            acts = output[0] if isinstance(output, (tuple, list)) else output
+            acts_sae = acts.to(
+                sae_ref.encoder.weight.device,
+                dtype=sae_ref.encoder.weight.dtype,
+            )
+            z_raw = sae_ref.encode(acts_sae)
+            z = z_raw.detach().requires_grad_(True)
+            z.retain_grad()
+            features_buffer["z"] = z
+            recon = sae_ref.decode(z)
+            if error_term:
+                recon = recon + (acts_sae.detach() - sae_ref.decode(z_raw).detach()).view_as(recon)
+            recon = recon.to(acts.device, dtype=acts.dtype)
+            if recon.shape != acts.shape:
+                recon = recon.view_as(acts)
+            if isinstance(output, (tuple, list)):
+                return (recon,) + output[1:]
+            return recon
+
+        return sae_hook
 
     def get_top_k_features(
         self, k: int, score_key: str = "causal_score"

@@ -73,6 +73,9 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "correctness_metric": "option_logprob",
         "logprob_normalize": True,
         "batch_size": 256,
+        # Add the SAE error term back when splicing the dictionary in for scoring
+        # (forward pass stays exact). False reproduces the archived catalogs.
+        "error_term": False,
         "fallback": {
             "discrimination_threshold": 1.1,
             "min_activation": 0.0,
