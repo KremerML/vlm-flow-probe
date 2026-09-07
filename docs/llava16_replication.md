@@ -62,6 +62,10 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 | `vfp-verify-adapter` 15/15 at layers 0 and 11; 1176 image tokens confirmed | `output/llava16_verify_layer{0,11}.json` |
 | 2026-09-08 | GPU tests: 21 passed (`-k llava_next`); LLaVA-1.5's 15 contract checks + 4 module tests still pass, so the subclassing changed nothing | -- |
 | 2026-09-08 | Bring-up on 32 val items, both models through the same script | `output/llava16_bringup.json`, `output/llava15_bringup.json` |
+| 2026-09-08 | Equivalence gate **18/18** on the RTX 4090 after all Gemma + LLaVA-1.6 changes (A0 mean drop 0.21358 vs archived 0.21307, per-sample r 0.99959) | `output/gate/20260908_010458/gate_report.json` |
+| 2026-09-08 | Cluster: tree synced, weights fetched, `output/activations` moved to scratch and symlinked (home 30% -> 24% of 200 GiB) | `/scratch-shared/rkremer/vlm-flow-probe/output/activations` |
+| 2026-09-08 | CLEVR-Lite regenerated on the cluster (50,000 train / 2,000 val scenes; 186,638 / 7,790 questions). `val_questions.json` is byte-identical to the archive's, and all 2,000 val images match it pixel-for-pixel (only the PNG container bytes differ). The evaluation set is therefore the same items the LLaVA-1.5 and Gemma runs used. | `~/vlm-flow-probe/datasets/clevr_lite` |
+| 2026-09-08 | CPU suite green on the cluster (195); bring-up job submitted to `gpu_h100` | job 26457746 |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
@@ -77,6 +81,16 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 Single-sample knockout landscape (sample 0, `Image->Question`, window 1) peaks at layer 11 for
 both models: 0.36 for 1.5, 2.05 for 1.6, with 1.6 also showing 0.90 at layer 10 and 1.02 at
 layer 21. One sample -- the span decision comes from the full sweep, not from this.
+
+## Incidents
+
+**The cluster's dataset directory was deleted and regenerated (2026-09-08).** A local `datasets`
+symlink into the archive checkout was rsynced to the cluster: `snellius_sync.sh` excluded
+`datasets/` with a trailing slash, which matches directories only, so the symlink was transferred
+and `--delete` removed the real directory behind it. Nothing unique was lost -- CLEVR-Lite is
+deterministic, which is why it is gitignored -- and the regenerated val split is byte-identical in
+its questions and pixel-identical in its images (verified above). The sync script's exclusions
+lost their trailing slashes so a symlink cannot slip through again.
 
 ## Open items
 

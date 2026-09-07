@@ -12,8 +12,11 @@ cd "$(dirname "$0")/.."
 REMOTE=${REMOTE:-snellius}
 DEST=${DEST:-vlm-flow-probe}
 
+# Exclusions carry no trailing slash: with one, rsync matches directories only,
+# and a local `datasets` symlink into the archive checkout would be copied over
+# the cluster's real dataset directory (and --delete would remove it).
 rsync -az --delete \
-    --exclude '.venv/' --exclude 'output/' --exclude 'datasets/' \
+    --exclude '.venv' --exclude 'output' --exclude 'datasets' \
     --exclude '__pycache__/' --exclude '*.pyc' \
     --exclude '.pytest_cache/' --exclude '.ruff_cache/' \
     ./ "$REMOTE:$DEST/"

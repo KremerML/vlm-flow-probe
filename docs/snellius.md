@@ -43,12 +43,11 @@ source scripts/snellius_env.sh
 **`/scratch-shared` is purged on a rolling 14-day window.** Nothing whose loss would cost you more
 than a re-run belongs there. That split is the one non-obvious decision in this setup.
 
-As of 2026-09-08 the Gemma run's `output/` is a real directory under `$HOME`, not a symlink:
-27 GB of activations plus 9 GB of experiment artifacts, against a 200 GiB quota at 30% usage.
-That fits for a 34-layer model cached at one site. It does not fit the next one — 32 layers of
-LLaVA-1.6 activations is ~1.3 TB plus a transient per-layer copy during reassembly — so
-`output/activations` becomes a symlink onto scratch before that collection runs, while
-`output/experiments` stays on `$HOME`.
+`output/` itself is a real directory under `$HOME`; `output/activations` is a symlink onto
+scratch (set up 2026-09-08, when the Gemma cache moved there and home usage fell from 30% to
+24% of the 200 GiB quota). That split is what makes the next collection possible at all: 32
+layers of LLaVA-1.6 activations is ~1.3 TB plus a transient per-layer copy during reassembly,
+against 9 GB of experiment artifacts that are worth keeping.
 
 ## Software stack
 

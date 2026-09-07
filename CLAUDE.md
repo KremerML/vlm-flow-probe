@@ -65,9 +65,9 @@ saves.
 `scripts/snellius_submit.sh <name> "<vfp command>" [time] [partition] [sbatch args]` wraps one
 command in `scripts/slurm/vfp.sbatch` (one GPU, logs in `~/logs`) and defaults to `gpu_a100`.
 `gpu_h100` was entirely down on 2026-09-06, which is why the Gemma runs went to `gpu_a100`; it is
-up again as of 2026-09-08. On the cluster `output/` is a real directory under `$HOME` (27 GB
-activations + 9 GB experiments), not a symlink onto scratch; `output/activations` moves to scratch
-before the next model's collection, which is ~1.3 TB.
+up again as of 2026-09-08. On the cluster `output/` is a real directory under `$HOME` and
+`output/activations` is a symlink onto `$VFP_OUTPUT_ROOT` (scratch) — the Gemma cache moved there
+2026-09-08, and LLaVA-1.6's 32 layers are ~1.3 TB.
 `scripts/run_gemma3_layers.sh` is the per-layer import -> identify -> ablate chain for Gemma.
 
 ## Architecture
