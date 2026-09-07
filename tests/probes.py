@@ -90,6 +90,38 @@ def hf_llava_probe() -> AdapterProbe:
     return probe
 
 
+def hf_llava_next_probe() -> AdapterProbe:
+    """The real LLaVA-1.6 adapter on the first CLEVR-Lite validation sample.
+
+    Same decoder as ``hf_llava_probe``, so layer 0 is as good as any; what this
+    exercises that the 1.5 probe does not is AnyRes geometry (1176 image tokens
+    on a 224x224 image) and the image-feature cache.
+    """
+    if not torch.cuda.is_available():
+        pytest.skip("needs CUDA")
+    if not CLEVR.exists():
+        pytest.skip(f"CLEVR-Lite not found at {CLEVR}")
+
+    from vlmflowprobe.adapters.registry import create_adapter
+
+    adapter = create_adapter(
+        {"adapter": "hf-llava-next", "name": "llava-hf/llava-v1.6-vicuna-7b-hf"}
+    )
+    adapter.load()
+    dataset = clevr_dataset()
+    line = dataset.questions[0]
+    detail = dataset.dataset_dict[line["q_id"]]
+    probe = AdapterProbe(
+        adapter=adapter,
+        question=detail["question"],
+        image=dataset.load_image(line),
+        true_answer=detail["true option"].strip(),
+        false_answer=detail["false option"].strip(),
+    )
+    probe.degenerate_image_batch = lambda: degenerate_by_stripping_image_tokens(probe)
+    return probe
+
+
 def hf_gemma3_probe() -> AdapterProbe:
     """The real Gemma 3 4B adapter on the first CLEVR-Lite validation sample.
 
@@ -126,6 +158,7 @@ _CACHE = {}
 ADAPTER_PROBES = [
     pytest.param(stub_probe, id="stub"),
     pytest.param(hf_llava_probe, id="hf-llava", marks=pytest.mark.gpu),
+    pytest.param(hf_llava_next_probe, id="hf-llava-next", marks=pytest.mark.gpu),
     pytest.param(hf_gemma3_probe, id="hf-gemma3", marks=pytest.mark.gpu),
 ]
 

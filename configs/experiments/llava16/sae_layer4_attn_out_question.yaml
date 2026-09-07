@@ -1,0 +1,12 @@
+# Layer 4: train + causal feature ID + ablation all read this.
+include:
+  - ../../fragments/model_llava16_vicuna7b_hf.yaml
+  - ../../fragments/dataset_clevr_lite.yaml
+  - ../../fragments/sae_default.yaml
+  - ../../fragments/ablation_default.yaml
+model:
+  target_layer: 4
+experiment:
+  output_base: "output/experiments"
+  name: "llava16_sae_clevr_lite_layer4_attn_out_question"
+  use_timestamp: false

@@ -84,7 +84,7 @@ class HFLlavaAdapter(ModelAdapter):
 
     def _require_loaded(self):
         if self._model is None:
-            raise AdapterContractError("HFLlavaAdapter used before load()")
+            raise AdapterContractError(f"{type(self).__name__} used before load()")
 
     # ------------------------------------------------------------------ properties
     @property
@@ -116,13 +116,20 @@ class HFLlavaAdapter(ModelAdapter):
         return int(token_id)
 
     # ------------------------------------------------------------------ inputs
+    def build_prompt(self, question: str, with_image: bool = True) -> str:
+        """The vicuna_v1 prompt, byte-identical to the archive's ``llava_loader.py``.
+
+        A method rather than an inline string because LLaVA-1.6 shares it: the
+        two models differ in their vision front-end, not in how they are asked.
+        """
+        suffixed = question + ANSWER_SUFFIX
+        if with_image:
+            return f"{VICUNA_V1_SYSTEM} USER: <image>\n{suffixed} ASSISTANT:"
+        return f"{VICUNA_V1_SYSTEM} USER: {suffixed} ASSISTANT:"
+
     def build_inputs(self, question: str, image: Any = None) -> ModelBatch:
         self._require_loaded()
-        suffixed = question + ANSWER_SUFFIX
-        if image is not None:
-            prompt = f"{VICUNA_V1_SYSTEM} USER: <image>\n{suffixed} ASSISTANT:"
-        else:
-            prompt = f"{VICUNA_V1_SYSTEM} USER: {suffixed} ASSISTANT:"
+        prompt = self.build_prompt(question, with_image=image is not None)
 
         adapter_options = self.model_cfg.get("adapter_options", {})
         if image is not None and adapter_options.get("pad_to_square", True):

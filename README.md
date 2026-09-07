@@ -14,8 +14,9 @@ vision-language models**, pairing two causal interventions at a matched locus:
 The package is **model-agnostic behind a `ModelAdapter` interface** (`vlmflowprobe.adapters`).
 Everything that touches a specific model — prompt construction, image preprocessing, token
 geometry, attention-mask editing, module resolution — lives in one adapter class per model family.
-Shipped adapters: HF-native LLaVA-1.5 (`llava-hf/llava-1.5-7b-hf`) and Gemma 3 4B
-(`google/gemma-3-4b-it`, run on the pre-trained Gemma Scope 2 attention dictionaries).
+Shipped adapters: HF-native LLaVA-1.5 (`llava-hf/llava-1.5-7b-hf`), LLaVA-1.6 / LLaVA-NeXT
+(`llava-hf/llava-v1.6-vicuna-7b-hf`, the same decoder behind an AnyRes vision front-end) and
+Gemma 3 4B (`google/gemma-3-4b-it`, run on the pre-trained Gemma Scope 2 attention dictionaries).
 
 ## Status
 

@@ -1,0 +1,23 @@
+# LLaVA-1.6 / LLaVA-NeXT (vicuna-7b) via the HF-native adapter. Same Vicuna-7B
+# decoder and same vicuna_v1 prompt as model_llava15_hf.yaml -- the replication
+# holds those fixed and changes only the vision front-end, where AnyRes tiling
+# turns a 224x224 CLEVR-Lite image into 1176 image tokens instead of 576.
+#
+# pad_to_square must stay false: it defaults to true in DEFAULT_CONFIG, and
+# AnyRes picks its tiling from the image's own size, so padding would change
+# the token count. The adapter refuses a true value rather than ignoring it.
+model:
+  adapter: "hf-llava-next"
+  name: "llava-hf/llava-v1.6-vicuna-7b-hf"
+  # Carried into every experiment name and output path built from this fragment,
+  # so a second model cannot land in the same directory.
+  tag: "llava16"
+  dtype: "float16"
+  activation_site: "attn_out"
+  adapter_options:
+    prompt_template: "vicuna_v1"
+    pad_to_square: false
+    # Run the vision tower once per sample and reuse the packed features. A
+    # knockout sweep is tens of forwards over an unchanging image, and AnyRes
+    # makes that pass five tiles' worth of work.
+    cache_image_features: true

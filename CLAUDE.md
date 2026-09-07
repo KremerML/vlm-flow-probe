@@ -98,7 +98,10 @@ internally must translate at its own boundary.
 `StubAdapter` (`adapters/stub.py`, plus `tests/stubs.py`) is how every model-facing test drives the
 interface on CPU.
 
-Two real adapters: `hf-llava` (LLaVA-1.5-7B) and `hf-gemma3` (Gemma 3 4B IT). Gemma runs on
+Three real adapters: `hf-llava` (LLaVA-1.5-7B), `hf-llava-next` (LLaVA-1.6 vicuna-7B) and
+`hf-gemma3` (Gemma 3 4B IT). `hf-llava-next` subclasses `hf-llava` and changes only the vision
+front-end: AnyRes tiling (1176 image tokens for a 224x224 image, against 576), `image_sizes` on
+`ModelBatch.extra`, no `expand2square`, and a per-sample image-feature cache. Gemma runs on
 pre-trained Gemma Scope 2 dictionaries via `vfp-import-sae` instead of `vfp-train-sae`; its SAEs
 read the `o_proj` *input*, exposed as the `attn_z` site (identity tap, width 2048, `site_dim`).
 Gemma's question span is every post-image text position and its `answer_prefix` is empty -- see

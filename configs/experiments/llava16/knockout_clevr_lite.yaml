@@ -1,0 +1,16 @@
+include:
+  - ../../fragments/model_llava16_vicuna7b_hf.yaml
+  - ../../fragments/dataset_clevr_lite.yaml
+dataset:
+  split: "val"
+knockout:
+  flows: ["Image->Question", "Image->Last"]
+  window: 1
+  filter_correct: true
+  normalize_logprob: true
+experiment:
+  output_base: "output/experiments"
+  # One job per flow, each with --experiment_name llava16_knockout_clevr_lite_{iq,il},
+  # so a 20-hour sweep that dies takes only its own flow with it.
+  name: "llava16_knockout_clevr_lite"
+  use_timestamp: false
