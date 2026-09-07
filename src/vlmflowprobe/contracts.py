@@ -53,6 +53,9 @@ CONDITION_ID_PATTERNS: Dict[str, str] = {
     "budget_concentrated": r"^budget_concentrated_L\d+_k\d+$",
     "downstream": r"^downstream_(ablate|combined)_L\d+$|^downstream_knockout_L[\d,-]+$",
     "sensitivity": r"^sensitivity_(joint|knockout)_L[\d,-]+$|^sensitivity_passthrough_tail_L\d+$",
+    # Ablation with Image->Question severed at every layer: what the features do
+    # when no image information can reach the text positions at all.
+    "isolation": r"^full_knockout_L[\d,-]+$|^isolated_(ablate_L\d+|joint_L[\d,-]+)$",
 }
 
 _COMPILED = {name: re.compile(pattern) for name, pattern in CONDITION_ID_PATTERNS.items()}

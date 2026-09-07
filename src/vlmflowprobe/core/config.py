@@ -150,6 +150,10 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "conditions": {
         "gate": True,
         "primary": True,
+        # Layer the A0 regression condition ablates. 11 is the published one, and
+        # the gate phase means nothing for a model with no published number to
+        # regress against -- set it to null there.
+        "a0_regression_layer": 11,
         "nested": [[14], [13, 14], [12, 13, 14], [11, 12, 13, 14], [10, 11, 12, 13, 14]],
         # Same sizes as nested spans but different depths. Without these the nested curve
         # cannot separate "how many layers" from "which layers", since it always grows

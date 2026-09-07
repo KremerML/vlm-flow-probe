@@ -20,9 +20,12 @@ this run it is not: the per-span ratios disperse well beyond their own intervals
 proves nothing, because the metric saturates even under true independence; so the ratio is
 reported *calibrated by the knockout's own sub-additivity*, which the same run measures.
 
-    PY=LLaVA-NeXT/.venv/bin/python
-    $PY sae_experiments/tools/analyze_multilayer_ablation.py \
-        --experiment_dir output/sae_experiments/multilayer_clevr_lite_l10-14_attn_out_question
+The spans are not written down here: they are derived from the run's own config
+(its ``provenance.json``, or ``--config``) through ``RunContext.span_pairs``, so
+a model with a different depth or a different layer set is analysed by the same
+code. Layers are reported with their depth fraction (``layer / n_layers``).
+
+    vfp-analyze-multilayer --experiment_dir output/experiments/<run>
 """
 
 import argparse
@@ -33,12 +36,14 @@ import sys
 import numpy as np
 
 
+from vlmflowprobe.ablation.multilayer_experiments import _compact_layer_range  # noqa: E402
 from vlmflowprobe.ablation.statistical_analysis import (  # noqa: E402
     paired_bootstrap_ci,
     ratio_statistic,
     wilcoxon_vs_controls,
     z_score_standard_error,
 )
+from vlmflowprobe.utils.run_context import load_run_context  # noqa: E402
 
 try:
     from scipy.optimize import curve_fit
@@ -169,26 +174,7 @@ def redundancy_index(conditions, ablation_id, knockout_id, seed=42):
 
 
 
-# Ablation/knockout pairs measured over the same span, on the same 256 questions. The runner's
-# ids are irregular (the full span is joint_/span_knockout_, not nested_/nested_knockout_), so
-# they are named here rather than derived. "{14}" is simultaneously the size-1 nested span and
-# the layer-14 single. Layers 10, 12 and 13 have no single-layer entry: their ablations predate
-# this harness and carry no per-sample record that can be paired against a knockout arm.
-SPAN_PAIRS = (
-    ("nested", "{14}", "nested_L14", "nested_knockout_L14", (14,)),
-    ("nested", "{13,14}", "nested_L13-14", "nested_knockout_L13-14", (13, 14)),
-    ("nested", "{12,13,14}", "nested_L12-14", "nested_knockout_L12-14", (12, 13, 14)),
-    ("nested", "{11-14}", "nested_L11-14", "nested_knockout_L11-14", (11, 12, 13, 14)),
-    ("nested", "{10-14}", "joint_L10-14", "span_knockout_L10-14", (10, 11, 12, 13, 14)),
-    ("single", "{11}", "A0_regression_L11", "knockout_L11", (11,)),
-    ("non-nested", "{10,11,12}", "nonnested_L10-12", "nonnested_knockout_L10-12", (10, 11, 12)),
-    ("non-nested", "{10,12,14}", "nonnested_L10,12,14", "nonnested_knockout_L10,12,14", (10, 12, 14)),
-    ("sensitivity", "{10,11,12,14}", "sensitivity_joint_L10,11,12,14",
-     "sensitivity_knockout_L10,11,12,14", (10, 11, 12, 14)),
-)
-
-
-def redundancy_by_span(conditions, seed=42, pairs=SPAN_PAIRS):
+def redundancy_by_span(conditions, pairs, seed=42, context=None):
     """R = A/K with a paired bootstrap CI for every span the matrix measures both arms of.
 
     The joint-span R alone cannot distinguish "ablation recovers a fixed share of the flow"
@@ -196,19 +182,21 @@ def redundancy_by_span(conditions, seed=42, pairs=SPAN_PAIRS):
     what a redundancy account predicts. Reporting R per span separates them.
     """
     rows = []
-    for kind, label, ablation_id, knockout_id, layers in pairs:
+    for pair in pairs:
         entry = {
-            "kind": kind,
-            "label": label,
-            "span_size": len(layers),
-            "layers": list(layers),
+            "kind": pair.kind,
+            "label": pair.label,
+            "span_size": pair.span_size,
+            "layers": list(pair.layers),
         }
-        entry.update(redundancy_index(conditions, ablation_id, knockout_id, seed))
+        if context is not None:
+            entry["mean_depth"] = context.depth_of(pair.layers)
+        entry.update(redundancy_index(conditions, pair.ablation_id, pair.knockout_id, seed))
         rows.append(entry)
     return rows
 
 
-def redundancy_trend(conditions, seed=42, n_bootstrap=10000, pairs=SPAN_PAIRS):
+def redundancy_trend(conditions, pairs, seed=42, n_bootstrap=10000):
     """Does R change with span size? One resample of questions, applied to every span.
 
     Each bootstrap draw resamples the question set once and recomputes R for all nested spans
@@ -220,21 +208,23 @@ def redundancy_trend(conditions, seed=42, n_bootstrap=10000, pairs=SPAN_PAIRS):
     pooled ratio, the observed spread, and whether any single value lies inside every span's
     interval -- the direct test of a "constant fraction" reading.
     """
-    nested = [p for p in pairs if p[0] == "nested"]
+    nested = [pair for pair in pairs if pair.kind == "nested"]
+    if not nested:
+        return {"status": "no_nested_spans"}
     arms = []
-    for _, label, ablation_id, knockout_id, layers in nested:
-        if ablation_id not in conditions or knockout_id not in conditions:
-            return {"status": "missing_condition", "condition": ablation_id}
-        a = conditions[ablation_id]["margin_drops"]
-        k = conditions[knockout_id]["margin_drops"]
+    for pair in nested:
+        if pair.ablation_id not in conditions or pair.knockout_id not in conditions:
+            return {"status": "missing_condition", "condition": pair.ablation_id}
+        a = conditions[pair.ablation_id]["margin_drops"]
+        k = conditions[pair.knockout_id]["margin_drops"]
         if not a or not k or len(a) != len(k):
-            return {"status": "no_per_sample_data", "condition": ablation_id}
-        arms.append((label, len(layers), np.asarray(a, float), np.asarray(k, float)))
+            return {"status": "no_per_sample_data", "condition": pair.ablation_id}
+        arms.append((pair.label, pair.span_size, np.asarray(a, float), np.asarray(k, float)))
 
     hashes = {
         conditions[cid].get("question_ids_sha1")
-        for _, _, ab, ko, _ in nested
-        for cid in (ab, ko)
+        for pair in nested
+        for cid in (pair.ablation_id, pair.knockout_id)
     }
     hashes.discard(None)
     if len(hashes) > 1:
@@ -581,31 +571,53 @@ def significance_report(conditions):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment_dir", required=True)
-    parser.add_argument("--span", default="10,11,12,13,14")
+    parser.add_argument("--span", default=None,
+                        help="override the run's own layer span (comma-separated)")
+    parser.add_argument("--config", default=None,
+                        help="read layers and spans from this config instead of the "
+                             "run's provenance.json")
+    parser.add_argument("--n_layers", type=int, default=None,
+                        help="model depth for depth-fraction reporting, when the run "
+                             "predates model geometry being stamped into provenance")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    span = [int(x) for x in args.span.split(",")]
-    span_tag = f"{span[0]}-{span[-1]}" if span == list(range(span[0], span[-1] + 1)) else ",".join(map(str, span))
+    context = load_run_context(
+        experiment_dir=args.experiment_dir, config_path=args.config, n_layers=args.n_layers
+    )
+    span = [int(x) for x in args.span.split(",")] if args.span else context.layers
+    if not span:
+        sys.exit(
+            "no layer span: the run's config carries no multilayer.layers; pass --span or --config"
+        )
+    span_tag = _compact_layer_range(span)
     joint_id = f"joint_L{span_tag}"
     span_knockout_id = f"span_knockout_L{span_tag}"
+    pairs = context.span_pairs()
 
     conditions = load_conditions(args.experiment_dir)
-    print(f"Loaded {len(conditions)} conditions from {args.experiment_dir}\n")
+    print(f"Loaded {len(conditions)} conditions from {args.experiment_dir}")
+    print(f"Layers {span} from {context.source}"
+          + (f"; model depth {context.n_layers}\n" if context.n_layers else "\n"))
 
     report = {
         "experiment_dir": args.experiment_dir,
         "span": span,
+        "layer_source": context.source,
+        "n_layers": context.n_layers,
         "n_conditions": len(conditions),
         "redundancy_index": redundancy_index(conditions, joint_id, span_knockout_id, args.seed),
         "single_layer_ratios": {
-            str(layer): redundancy_index(
-                conditions, f"nested_L{layer}", f"knockout_L{layer}", args.seed
+            str(layer): dict(
+                redundancy_index(
+                    conditions, f"nested_L{layer}", f"knockout_L{layer}", args.seed
+                ),
+                depth=context.depth(layer),
             )
             for layer in span
         },
-        "redundancy_by_span": redundancy_by_span(conditions, args.seed),
-        "redundancy_trend": redundancy_trend(conditions, args.seed),
+        "redundancy_by_span": redundancy_by_span(conditions, pairs, args.seed, context),
+        "redundancy_trend": redundancy_trend(conditions, pairs, args.seed),
         "saturation": nested_curves(conditions),
         "interaction": interaction_index(conditions, span, joint_id, span_knockout_id),
         "leave_one_out": leave_one_out(conditions, span, joint_id),
@@ -690,16 +702,19 @@ def render_markdown(report):
 
     lines.append("Single layers, for comparison (same samples for numerator and denominator):")
     lines.append("")
-    lines.append("| layer | ablation | knockout | ratio | 95% CI |")
-    lines.append("|---|---|---|---|---|")
+    lines.append("| layer | depth | ablation | knockout | ratio | 95% CI |")
+    lines.append("|---|---|---|---|---|---|")
     for layer, entry in report["single_layer_ratios"].items():
+        depth = entry.get("depth")
+        depth_cell = "—" if depth is None else f"{depth:.2f}"
         if entry.get("status") == "ok":
             lines.append(
-                f"| {layer} | {entry['ablation_mean']:.4f} | {entry['knockout_mean']:.4f} | "
+                f"| {layer} | {depth_cell} | {entry['ablation_mean']:.4f} | "
+                f"{entry['knockout_mean']:.4f} | "
                 f"{entry['ratio']:.3f} | {entry['ci_low']:.3f} - {entry['ci_high']:.3f} |"
             )
         else:
-            lines.append(f"| {layer} | — | — | undefined | {entry.get('status')} |")
+            lines.append(f"| {layer} | {depth_cell} | — | — | undefined | {entry.get('status')} |")
     lines.append("")
 
     lines.extend(render_redundancy_by_span(report))

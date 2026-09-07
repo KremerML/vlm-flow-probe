@@ -9,6 +9,12 @@ No z-scores. The z over N control sets is not estimable for this experiment
 (see run_control_conditions.py) and is replaced throughout by paired contrasts
 with bootstrap intervals.
 
+Layers, spans and feature budgets come from the run's own config (its
+``provenance.json``, or ``--config``), never from literals here: the same
+analysis has to read a 32-layer model and a 42-layer one. Layer numbers are
+reported with their depth fraction (``layer / n_layers``) so the two are
+comparable.
+
     vfp-analyze-controls --control_dir output/experiments/controls_v3 \
                          --published <archived multilayer run>
 """
@@ -21,10 +27,10 @@ import sys
 import numpy as np
 
 from vlmflowprobe.ablation.statistical_analysis import paired_bootstrap_ci
+from vlmflowprobe.utils.run_context import load_run_context
 
 #: Reference run to pair against; overridable with --published.
 PUBLISHED = os.environ.get("VFP_PUBLISHED_RUN", "")
-LAYERS = (10, 11, 12, 13, 14)
 
 
 # --------------------------------------------------------------------------- loading
@@ -130,32 +136,33 @@ def fmt(value, width=8, places=4, signed=True):
 # --------------------------------------------------------------------------- sections
 
 
-def section_single_layer(control_dir, published, report, out):
+def section_single_layer(control_dir, published, report, out, context, k=200):
     """Binding against each control, per layer."""
     out.append("\n## 1. Single-layer: binding against disjoint controls\n")
     out.append("Every value is a mean over the same 256 questions. `difference` is the")
     out.append("paired per-question contrast (binding minus control) with a 95% bootstrap")
     out.append("interval that resamples question indices once and applies them to both arms.\n")
     rows = {}
-    for layer in LAYERS:
-        binding = load_any(control_dir, published=published, condition_id=f"bind_causal_1_200_L{layer}")
+    for layer in context.layers:
+        binding = load_any(control_dir, published=published,
+                           condition_id=f"bind_causal_1_{k}_L{layer}")
         if binding is None:
             continue
-        out.append(f"\n### Layer {layer}\n")
+        out.append(f"\n### Layer {context.depth_label(layer)}\n")
         out.append(f"{'condition':<34}{'drop':>9}{'perturb':>10}{'difference':>11}"
                    f"{'95% interval':>21}{'d_z':>7}{'%q>0':>7}")
         out.append("-" * 99)
         s = binding["summary"]
-        out.append(f"{'binding: causal ranks 1-200':<34}{fmt(s.get('mean_margin_drop'),9)}"
+        out.append(f"{f'binding: causal ranks 1-{k}':<34}{fmt(s.get('mean_margin_drop'),9)}"
                    f"{fmt(s.get('mean_relative_perturbation'),10,5,False)}"
                    f"{'reference':>11}{'':>21}{'':>7}{'':>7}")
         layer_rows = {}
         for cid, label in (
             (f"ctl_passthrough_L{layer}", "pass-through (0 features)"),
-            (f"ctl_band_200_400_L{layer}", "control: causal ranks 201-400"),
-            (f"ctl_band_400_600_L{layer}", "control: causal ranks 401-600"),
-            (f"ctl_acttop_200_L{layer}", "control: top-200 by activation"),
-            (f"ctl_actmatched_200_L{layer}", "control: activation-matched"),
+            (f"ctl_band_{k}_{2*k}_L{layer}", f"control: causal ranks {k+1}-{2*k}"),
+            (f"ctl_band_{2*k}_{3*k}_L{layer}", f"control: causal ranks {2*k+1}-{3*k}"),
+            (f"ctl_acttop_{k}_L{layer}", f"control: top-{k} by activation"),
+            (f"ctl_actmatched_{k}_L{layer}", "control: activation-matched"),
         ):
             control = load_any(control_dir, published=published, condition_id=cid)
             if control is None:
@@ -177,7 +184,7 @@ def section_single_layer(control_dir, published, report, out):
     report["single_layer"] = rows
 
 
-def section_gradient(control_dir, published, report, out):
+def section_gradient(control_dir, published, report, out, context):
     """Does the gradient factor contribute beyond activation?"""
     out.append("\n\n## 2. Isolating the gradient term\n")
     out.append("causal_score = |gradient| x |activation|, so the causal and activation")
@@ -186,7 +193,7 @@ def section_gradient(control_dir, published, report, out):
     out.append(f"{'condition':<40}{'n feat':>7}{'drop':>10}{'perturb':>10}")
     out.append("-" * 67)
     res = {}
-    for layer in (11, 14):
+    for layer in context.layers:
         for cid, label in ((f"grad_shared_L{layer}", f"L{layer}: in both rankings"),
                            (f"grad_causal_only_L{layer}", f"L{layer}: causal-ranking only"),
                            (f"grad_act_only_L{layer}", f"L{layer}: activation-ranking only")):
@@ -212,12 +219,12 @@ def section_gradient(control_dir, published, report, out):
     report["gradient_isolation"] = res
 
 
-def section_dose(control_dir, published, report, out):
+def section_dose(control_dir, published, report, out, context):
     """Effect against causal rank at fixed feature count."""
     out.append("\n\n## 3. Dose-response over causal rank (40 features per band)\n")
     out.append("Bands are disjoint and equal in size, so a decline cannot be a count effect.\n")
     res = {}
-    for layer in (11, 14):
+    for layer in context.layers:
         bands = []
         for i in range(10):
             lo, hi = i * 40, (i + 1) * 40
@@ -229,7 +236,7 @@ def section_dose(control_dir, published, report, out):
                           "perturbation": s.get("mean_relative_perturbation")})
         if not bands:
             continue
-        out.append(f"\n### Layer {layer}\n")
+        out.append(f"\n### Layer {context.depth_label(layer)}\n")
         out.append(f"{'causal ranks':>16}{'drop':>10}{'perturb':>10}{'drop/perturb':>14}")
         out.append("-" * 50)
         for b in bands:
@@ -246,14 +253,20 @@ def section_dose(control_dir, published, report, out):
     report["dose_response"] = res
 
 
-def section_subsets(control_dir, published, report, out):
+def section_subsets(control_dir, published, report, out, context):
     """The one place a set-level null is estimable."""
     out.append("\n\n## 4. Random 40-feature subsets of two deep pools\n")
     out.append("Subsets of the top-200 and of ranks 201-1000 overlap by about 20% and 5%,")
     out.append("so between-set variance here is real, unlike the matched-control sets.\n")
     res = {}
-    for name, label in (("subset_top200_L11", "random 40 of causal ranks 1-200"),
-                        ("subset_tail_L11", "random 40 of causal ranks 201-1000")):
+    families = [
+        (f"subset_top200_L{layer}", f"L{layer}: random 40 of causal ranks 1-200")
+        for layer in context.layers
+    ] + [
+        (f"subset_tail_L{layer}", f"L{layer}: random 40 of causal ranks 201-1000")
+        for layer in context.layers
+    ]
+    for name, label in families:
         drops = []
         for i in range(12):
             c = load_any(control_dir, published=published, condition_id=f"{name}_{i:02d}")
@@ -268,36 +281,51 @@ def section_subsets(control_dir, published, report, out):
                      "drops": arr.tolist()}
         out.append(f"  {label:<38} n={arr.size:<3} mean {arr.mean():+.4f}  "
                    f"sd {arr.std(ddof=1):.4f}  range [{arr.min():+.4f}, {arr.max():+.4f}]")
-    if len(res) == 2:
-        a = np.array(res["subset_top200_L11"]["drops"])
-        b = np.array(res["subset_tail_L11"]["drops"])
-        out.append(f"\n  separation: top-200 subsets exceed tail subsets by "
+    for layer in context.layers:
+        top, tail = res.get(f"subset_top200_L{layer}"), res.get(f"subset_tail_L{layer}")
+        if top is None or tail is None:
+            continue
+        a, b = np.array(top["drops"]), np.array(tail["drops"])
+        out.append(f"\n  L{layer} separation: top-200 subsets exceed tail subsets by "
                    f"{a.mean()-b.mean():+.4f} on average; "
                    f"{'no overlap' if a.min() > b.max() else 'ranges overlap'} between the two sets of runs")
-        res["separation"] = float(a.mean() - b.mean())
-        res["disjoint_ranges"] = bool(a.min() > b.max())
+        res[f"separation_L{layer}"] = float(a.mean() - b.mean())
+        res[f"disjoint_ranges_L{layer}"] = bool(a.min() > b.max())
     report["subsets"] = res
 
 
-def section_multi(control_dir, published, report, out):
+def section_multi(control_dir, published, report, out, context):
     """Multi-layer: symmetric control adjustment and the recomputed index."""
     out.append("\n\n## 5. Multi-layer conditions with symmetric controls\n")
 
+    budget_cfg = (context.config.get("conditions", {}) or {}).get("budget_matched", {}) or {}
+    per_layer = int(budget_cfg.get("spread_per_layer", 40))
+    concentrated_layer = budget_cfg.get("concentrated_layer")
+    concentrated_ks = [int(k) for k in budget_cfg.get("concentrated_k", [])]
+    n_layers = len(context.layers)
+    # The two arms of the budget comparison spend the same feature budget: k per
+    # layer across the span, against all of it at one layer.
+    total_budget = per_layer * n_layers
+    spread_id = f"budget_spread{per_layer}x{n_layers}"
+    concentrated_id = f"budget_concentrated_L{concentrated_layer}_k{total_budget}"
+
     # -------- budget comparison
     out.append("### 5a. The budget comparison (spreading against concentrating)\n")
-    spread = load_any(control_dir, published=published, condition_id="budget_spread40x5")
-    spread_ctl = load_any(control_dir, published=published, condition_id="ctl_budget_spread40x5")
-    conc = load_any(control_dir, published=published, condition_id="budget_concentrated_L11_k200")
-    conc_ctl = load_any(control_dir, published=published, condition_id="ctl_budget_concentrated_L11_k200")
+    spread = load_any(control_dir, published=published, condition_id=spread_id)
+    spread_ctl = load_any(control_dir, published=published, condition_id=f"ctl_{spread_id}")
+    conc = load_any(control_dir, published=published, condition_id=concentrated_id)
+    conc_ctl = load_any(control_dir, published=published, condition_id=f"ctl_{concentrated_id}")
     budget = {}
     if all(x is not None for x in (spread, spread_ctl, conc, conc_ctl)):
         sd_, sc_ = spread["summary"]["mean_margin_drop"], spread_ctl["summary"]["mean_margin_drop"]
         cd_, cc_ = conc["summary"]["mean_margin_drop"], conc_ctl["summary"]["mean_margin_drop"]
         out.append(f"{'arm':<28}{'drop':>10}{'control':>10}{'adjusted':>10}{'perturb':>10}")
         out.append("-" * 68)
-        out.append(f"{'spread 40 x 5 layers':<28}{fmt(sd_,10)}{fmt(sc_,10)}{fmt(sd_-sc_,10)}"
+        out.append(f"{f'spread {per_layer} x {n_layers} layers':<28}"
+                   f"{fmt(sd_,10)}{fmt(sc_,10)}{fmt(sd_-sc_,10)}"
                    f"{fmt(spread['summary'].get('mean_relative_perturbation'),10,5,False)}")
-        out.append(f"{'concentrated 200 at L11':<28}{fmt(cd_,10)}{fmt(cc_,10)}{fmt(cd_-cc_,10)}"
+        out.append(f"{f'concentrated {total_budget} at L{concentrated_layer}':<28}"
+                   f"{fmt(cd_,10)}{fmt(cc_,10)}{fmt(cd_-cc_,10)}"
                    f"{fmt(conc['summary'].get('mean_relative_perturbation'),10,5,False)}")
         ratio = adjusted_ratio(spread, spread_ctl, conc, conc_ctl)
         out.append(f"\n  raw ratio                : {sd_/cd_:.2f}x")
@@ -314,20 +342,17 @@ def section_multi(control_dir, published, report, out):
     out.append("R = ablation / knockout. The knockout arm needs no control (it is an")
     out.append("attention mask, not a feature intervention), so only the numerator moves.\n")
     spans = [
-        ("{14}", 1, "nested_L14", "nested_knockout_L14", "ctl_nested_L14"),
-        ("{13,14}", 2, "nested_L13-14", "nested_knockout_L13-14", "ctl_nested_L13-14"),
-        ("{12,13,14}", 3, "nested_L12-14", "nested_knockout_L12-14", "ctl_nested_L12-14"),
-        ("{11-14}", 4, "nested_L11-14", "nested_knockout_L11-14", "ctl_nested_L11-14"),
-        ("{10-14}", 5, "joint_L10-14", "span_knockout_L10-14", "ctl_joint_L10-14"),
-        ("{10,11,12}", 3, "nonnested_L10-12", "nonnested_knockout_L10-12", "ctl_nonnested_L10-12"),
-        ("{10,12,14}", 3, "nonnested_L10,12,14", "nonnested_knockout_L10,12,14", "ctl_nonnested_L10,12,14"),
+        pair for pair in context.span_pairs() if pair.kind in ("nested", "non-nested")
     ]
-    out.append(f"{'span':<14}{'size':>5}{'A':>9}{'control':>9}{'A adj':>9}{'K':>9}"
+    out.append(f"{'span':<14}{'size':>5}{'depth':>7}{'A':>9}{'control':>9}{'A adj':>9}{'K':>9}"
                f"{'R raw':>8}{'R adj':>8}{'95% interval':>20}")
-    out.append("-" * 91)
+    out.append("-" * 98)
     results = []
-    for label, size, a_id, k_id, c_id in spans:
-        A, K, C = load_any(control_dir, published=published, condition_id=a_id), load_any(control_dir, published=published, condition_id=k_id), load_any(control_dir, published=published, condition_id=c_id)
+    for pair in spans:
+        label, size = pair.label, pair.span_size
+        A = load_any(control_dir, published=published, condition_id=pair.ablation_id)
+        K = load_any(control_dir, published=published, condition_id=pair.knockout_id)
+        C = load_any(control_dir, published=published, condition_id=pair.control_id)
         if A is None or K is None:
             continue
         a_mean = A["summary"]["mean_margin_drop"]
@@ -349,9 +374,13 @@ def section_multi(control_dir, published, report, out):
                 )
                 interval = f"[{100*lo:5.1f}%, {100*hi:5.1f}%]"
                 r_adj = point
-        out.append(f"{label:<14}{size:>5}{fmt(a_mean,9)}{fmt(c_mean,9)}{fmt(a_mean-c_mean,9)}"
+        mean_depth = context.depth_of(pair.layers)
+        depth_cell = "-".rjust(7) if mean_depth is None else f"{mean_depth:>7.2f}"
+        out.append(f"{label:<14}{size:>5}{depth_cell}"
+                   f"{fmt(a_mean,9)}{fmt(c_mean,9)}{fmt(a_mean-c_mean,9)}"
                    f"{fmt(k_mean,9)}{100*r_raw:>7.1f}%{100*r_adj:>7.1f}%{interval:>20}")
-        results.append({"span": label, "size": size, "ablation": a_mean, "control": c_mean,
+        results.append({"span": label, "size": size, "layers": list(pair.layers),
+                        "mean_depth": mean_depth, "ablation": a_mean, "control": c_mean,
                         "knockout": k_mean, "r_raw": r_raw, "r_adjusted": r_adj})
     if len(results) > 2:
         xs = np.array([r["size"] for r in results], dtype=float)
@@ -368,11 +397,13 @@ def section_multi(control_dir, published, report, out):
     out.append(f"{'condition':<30}{'binding':>10}{'control':>10}{'control share':>15}")
     out.append("-" * 65)
     other = {}
-    pairs = [(f"loo_drop{l}", f"ctl_loo_drop{l}") for l in LAYERS]
-    pairs += [("downstream_ablate_L11", "ctl_downstream_ablate_L11"),
-              ("downstream_ablate_L14", "ctl_downstream_ablate_L14")]
-    pairs += [(f"budget_concentrated_L11_k{k}", f"ctl_budget_concentrated_L11_k{k}")
-              for k in (40, 100, 200, 400, 800)]
+    anchors = ((context.config.get("conditions", {}) or {})
+               .get("downstream_knockout", {}) or {}).get("anchor_layers", [])
+    pairs = [(f"loo_drop{l}", f"ctl_loo_drop{l}") for l in context.layers]
+    pairs += [(f"downstream_ablate_L{l}", f"ctl_downstream_ablate_L{l}") for l in anchors]
+    pairs += [(f"budget_concentrated_L{concentrated_layer}_k{k}",
+               f"ctl_budget_concentrated_L{concentrated_layer}_k{k}")
+              for k in concentrated_ks]
     for b_id, c_id in pairs:
         B, C = load_any(control_dir, published=published, condition_id=b_id), load_any(control_dir, published=published, condition_id=c_id)
         if B is None or C is None:
@@ -394,22 +425,53 @@ def main():
     parser.add_argument("--control_dir", required=True)
     parser.add_argument("--published", default=PUBLISHED,
                         help="reference run to pair against for conditions not re-run")
+    parser.add_argument("--config", default=None,
+                        help="read layers and budgets from this config instead of the "
+                             "control run's provenance.json")
+    parser.add_argument("--layers", default=None,
+                        help="override the run's layer set (comma-separated)")
+    parser.add_argument("--n_layers", type=int, default=None,
+                        help="model depth for depth-fraction reporting, when the run "
+                             "predates model geometry being stamped into provenance")
+    parser.add_argument("--k", type=int, default=200,
+                        help="binding-set size the control conditions were built with")
     parser.add_argument("--output", default=None)
     args = parser.parse_args()
 
-    report = {}
+    context = load_run_context(
+        experiment_dir=args.control_dir, config_path=args.config, n_layers=args.n_layers
+    )
+    if args.layers:
+        context.config.setdefault("multilayer", {})["layers"] = [
+            int(x) for x in args.layers.split(",")
+        ]
+        context.source = "--layers"
+    if not context.layers:
+        sys.exit(
+            "no layers to analyse: the run's config carries neither multilayer.layers nor "
+            "multilayer.stats_paths; pass --layers or --config"
+        )
+
+    report = {"layers": context.layers, "layer_source": context.source,
+              "n_layers": context.n_layers}
+    depth_note = (
+        f" Depths are layer / {context.n_layers}." if context.n_layers
+        else " Depth fractions are unavailable: this run recorded no model geometry."
+    )
     out = ["# Redesigned random controls: results",
            "",
            "All conditions evaluated on the same 256 questions in the same order.",
            "Intervals are 95% paired bootstrap over question indices, 10000 resamples.",
            "Controls are disjoint from their binding sets by construction, so no",
-           "candidate pool is required and no z-score over control sets is reported."]
+           "candidate pool is required and no z-score over control sets is reported.",
+           "",
+           f"Layers {context.layers} from {context.source}." + depth_note]
 
-    section_single_layer(args.control_dir, args.published, report, out)
-    section_gradient(args.control_dir, args.published, report, out)
-    section_dose(args.control_dir, args.published, report, out)
-    section_subsets(args.control_dir, args.published, report, out)
-    section_multi(args.control_dir, args.published, report, out)
+    section_single_layer(args.control_dir, args.published, report, out, context, k=args.k)
+    section_gradient(args.control_dir, args.published, report, out, context)
+    section_dose(args.control_dir, args.published, report, out, context)
+    section_subsets(args.control_dir, args.published, report, out, context)
+    section_multi(args.control_dir, args.published, report, out, context)
 
     text = "\n".join(out)
     print(text)

@@ -73,6 +73,7 @@ PHASES = (
     "budget",
     "downstream",
     "sensitivity",
+    "isolation",
 )
 
 
@@ -134,15 +135,17 @@ def build_conditions(experiment, config, phases):
     if "gate" in phases:
         # A0 is the regression test for the whole feature_ablator refactor: one layer,
         # top-200, through the multi-layer harness, must reproduce 0.2131.
-        conditions.append(
-            Condition(
-                condition_id="A0_regression_L11",
-                kind=KIND_SAE,
-                features=experiment.features_for([11], 200),
-                mode=mode,
-                label="harness regression vs published layer-11 result",
+        a0_layer = cond_cfg.get("a0_regression_layer", 11)
+        if a0_layer is not None:
+            conditions.append(
+                Condition(
+                    condition_id=f"A0_regression_L{int(a0_layer)}",
+                    kind=KIND_SAE,
+                    features=experiment.features_for([int(a0_layer)], 200),
+                    mode=mode,
+                    label=f"harness regression vs published layer-{int(a0_layer)} result",
+                )
             )
-        )
         conditions.append(
             Condition(
                 condition_id="gate_none",
@@ -372,6 +375,48 @@ def build_conditions(experiment, config, phases):
                     label=f"layers {_compact_layer_range(head)} ablated, layer {tail_layer} pass-through",
                 )
             )
+
+    if "isolation" in phases:
+        # Every layer's Image->Question attention blocked: the text positions can
+        # get nothing from the image anywhere in the stack. Ablating on top of
+        # that measures what the selected features do with no image information
+        # to carry -- if the margin still moves, they are not (only) the pathway.
+        adapter = getattr(experiment, "adapter", None)
+        every_layer = tuple(range(adapter.n_layers)) if adapter is not None else ()
+        tag = _compact_layer_range(every_layer) if every_layer else "all"
+        conditions.append(
+            Condition(
+                condition_id=f"full_knockout_L{tag}",
+                kind=KIND_KNOCKOUT,
+                features={},
+                knockout_layers=every_layer,
+                flow=flow,
+                label="image severed at every layer; the no-image floor",
+            )
+        )
+        for layer in span:
+            conditions.append(
+                Condition(
+                    condition_id=f"isolated_ablate_L{layer}",
+                    kind=KIND_COMBINED,
+                    features=experiment.features_for([layer], k),
+                    knockout_layers=every_layer,
+                    flow=flow,
+                    mode=mode,
+                    label="single-layer ablation with the image severed everywhere",
+                )
+            )
+        conditions.append(
+            Condition(
+                condition_id=f"isolated_joint_L{_compact_layer_range(span)}",
+                kind=KIND_COMBINED,
+                features=experiment.features_for(span, k),
+                knockout_layers=every_layer,
+                flow=flow,
+                mode=mode,
+                label="joint ablation with the image severed everywhere",
+            )
+        )
 
     return conditions
 
@@ -774,6 +819,7 @@ def dry_run(config, phases, args):
     experiment.feature_stats = stats
     experiment.saes = {}
     experiment.config = config
+    experiment.adapter = None
 
     conditions = assign_control_kinds(build_conditions(experiment, config, phases))
     if args.conditions:

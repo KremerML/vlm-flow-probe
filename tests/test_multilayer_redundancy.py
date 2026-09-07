@@ -11,8 +11,13 @@ import unittest
 import numpy as np
 
 from vlmflowprobe.cli import analyze_multilayer as amla
+from vlmflowprobe.utils.run_context import load_run_context
 
 SHA = "a" * 40
+
+#: The spans the default (LLaVA) config describes; the analysis derives these
+#: from the run instead of carrying them as literals.
+PAIRS = load_run_context().span_pairs()
 
 
 def condition(drops, sha=SHA, layers=(), knockout_layers=()):
@@ -44,21 +49,21 @@ def nested_matrix(ratios, n=256, seed=0, noise=0.25):
     rng = np.random.default_rng(seed)
     difficulty = rng.normal(1.0, 0.2, n)
     conditions = {}
-    for (_, _, ablation_id, knockout_id, layers), ratio in zip(amla.SPAN_PAIRS, ratios):
-        size = len(layers)
+    for pair, ratio in zip(PAIRS, ratios):
+        size = pair.span_size
         knockout = difficulty * size
         wobble = rng.normal(0.0, noise * size, n)
         wobble -= wobble.mean()  # centred, so the realised R is exactly `ratio`
         ablation = knockout * ratio + wobble
-        conditions[knockout_id] = condition(knockout, knockout_layers=layers)
-        conditions[ablation_id] = condition(ablation, layers=layers)
+        conditions[pair.knockout_id] = condition(knockout, knockout_layers=pair.layers)
+        conditions[pair.ablation_id] = condition(ablation, layers=pair.layers)
     return conditions
 
 
 class TestRedundancyBySpan(unittest.TestCase):
     def test_rows_carry_span_shape_and_ratio(self):
         conditions = nested_matrix([0.7] * 5)
-        rows = [r for r in amla.redundancy_by_span(conditions) if r["kind"] == "nested"]
+        rows = [r for r in amla.redundancy_by_span(conditions, PAIRS) if r["kind"] == "nested"]
 
         self.assertEqual([r["span_size"] for r in rows], [1, 2, 3, 4, 5])
         for row in rows:
@@ -72,7 +77,7 @@ class TestRedundancyBySpan(unittest.TestCase):
         conditions = nested_matrix([0.7] * 5)
         del conditions["nested_L14"]
 
-        rows = amla.redundancy_by_span(conditions)
+        rows = amla.redundancy_by_span(conditions, PAIRS)
         row = next(r for r in rows if r["label"] == "{14}")
         self.assertEqual(row["status"], "missing_condition")
         self.assertEqual(row["span_size"], 1)
@@ -84,7 +89,7 @@ class TestRedundancyBySpan(unittest.TestCase):
             -np.abs(np.asarray(conditions["nested_knockout_L14"]["margin_drops"])),
             knockout_layers=(14,),
         )
-        row = next(r for r in amla.redundancy_by_span(conditions) if r["label"] == "{14}")
+        row = next(r for r in amla.redundancy_by_span(conditions, PAIRS) if r["label"] == "{14}")
         self.assertEqual(row["status"], "undefined_negative_ceiling")
         self.assertIsNone(row["ratio"])
 
@@ -93,13 +98,13 @@ class TestRedundancyBySpan(unittest.TestCase):
         conditions = nested_matrix([0.7] * 5)
         conditions["nested_L14"]["question_ids_sha1"] = "b" * 40
 
-        row = next(r for r in amla.redundancy_by_span(conditions) if r["label"] == "{14}")
+        row = next(r for r in amla.redundancy_by_span(conditions, PAIRS) if r["label"] == "{14}")
         self.assertEqual(row["status"], "sha1_mismatch")
 
     def test_seed_is_reproducible(self):
         conditions = nested_matrix([0.7] * 5)
-        first = amla.redundancy_by_span(conditions, seed=7)
-        second = amla.redundancy_by_span(conditions, seed=7)
+        first = amla.redundancy_by_span(conditions, PAIRS, seed=7)
+        second = amla.redundancy_by_span(conditions, PAIRS, seed=7)
         self.assertEqual(
             [(r.get("ci_low"), r.get("ci_high")) for r in first],
             [(r.get("ci_low"), r.get("ci_high")) for r in second],
@@ -108,7 +113,7 @@ class TestRedundancyBySpan(unittest.TestCase):
 
 class TestRedundancyTrend(unittest.TestCase):
     def test_flat_series_shows_no_trend_and_a_common_value(self):
-        trend = amla.redundancy_trend(nested_matrix([0.7] * 5), n_bootstrap=2000)
+        trend = amla.redundancy_trend(nested_matrix([0.7] * 5), PAIRS, n_bootstrap=2000)
 
         self.assertEqual(trend["status"], "ok")
         self.assertFalse(trend["slope_excludes_zero"])
@@ -120,7 +125,7 @@ class TestRedundancyTrend(unittest.TestCase):
     def test_rising_series_is_detected(self):
         """The redundancy signature: R grows as the span covers more of the compensating layers."""
         trend = amla.redundancy_trend(
-            nested_matrix([0.50, 0.60, 0.70, 0.80, 0.90]), n_bootstrap=2000
+            nested_matrix([0.50, 0.60, 0.70, 0.80, 0.90]), PAIRS, n_bootstrap=2000
         )
 
         self.assertTrue(trend["slope_excludes_zero"])
@@ -135,7 +140,7 @@ class TestRedundancyTrend(unittest.TestCase):
         a flat trend line does not by itself license calling R constant.
         """
         trend = amla.redundancy_trend(
-            nested_matrix([0.70, 0.85, 0.90, 0.85, 0.70]), n_bootstrap=2000
+            nested_matrix([0.70, 0.85, 0.90, 0.85, 0.70]), PAIRS, n_bootstrap=2000
         )
 
         self.assertFalse(trend["slope_excludes_zero"])
@@ -150,7 +155,7 @@ class TestRedundancyTrend(unittest.TestCase):
         conditions["joint_L10-14"]["question_ids_sha1"] = "c" * 40
 
         self.assertEqual(
-            amla.redundancy_trend(conditions, n_bootstrap=200)["status"], "sha1_mismatch"
+            amla.redundancy_trend(conditions, PAIRS, n_bootstrap=200)["status"], "sha1_mismatch"
         )
 
     def test_missing_span_is_refused(self):
@@ -158,7 +163,7 @@ class TestRedundancyTrend(unittest.TestCase):
         del conditions["span_knockout_L10-14"]
 
         self.assertEqual(
-            amla.redundancy_trend(conditions, n_bootstrap=200)["status"], "missing_condition"
+            amla.redundancy_trend(conditions, PAIRS, n_bootstrap=200)["status"], "missing_condition"
         )
 
 
