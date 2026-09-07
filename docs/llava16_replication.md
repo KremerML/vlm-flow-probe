@@ -66,6 +66,9 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 | Cluster: tree synced, weights fetched, `output/activations` moved to scratch and symlinked (home 30% -> 24% of 200 GiB) | `/scratch-shared/rkremer/vlm-flow-probe/output/activations` |
 | 2026-09-08 | CLEVR-Lite regenerated on the cluster (50,000 train / 2,000 val scenes; 186,638 / 7,790 questions). `val_questions.json` is byte-identical to the archive's, and all 2,000 val images match it pixel-for-pixel (only the PNG container bytes differ). The evaluation set is therefore the same items the LLaVA-1.5 and Gemma runs used. | `~/vlm-flow-probe/datasets/clevr_lite` |
 | 2026-09-08 | CPU suite green on the cluster (195); bring-up job submitted to `gpu_h100` | job 26457746 |
+| 2026-09-08 01:31 | Cluster bring-up done on an H100: verify 15/15 at layers 0 and 11, same geometry and the same margin as locally (7.298 vs 7.297 on 32 items); forward 67 ms against the 4090's 176 ms | job 26457746, `output/llava16_bringup.json` |
+| 2026-09-08 01:35 | **Knockout sweeps submitted**, one job per flow: full val split, `filter_correct`, window 1, all 32 layers, 249,280 steps each at ~7 steps/s (ETA ~10 h) | jobs 26457768 (Image->Question), 26457769 (Image->Last) |
+| 2026-09-08 01:35 | **Activation collection submitted**: train split, all 32 layers, question positions, writing to scratch (~1.2 TB: 186,638 samples x 24 positions x 4096 x fp16 x 32 layers) | job 26457770 |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
