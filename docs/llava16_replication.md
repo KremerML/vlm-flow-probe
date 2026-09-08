@@ -71,6 +71,7 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 01:35 | **Activation collection submitted**: train split, all 32 layers, question positions, writing to scratch (~1.2 TB: 186,638 samples x 24 positions x 4096 x fp16 x 32 layers) | job 26457770 |
 | 2026-09-08 02:1x | Span fixed from the partial `Image->Question` sweep (n = 1,546): **layers 10-14**, concentrated 11, sensitivity span drops 13 -- the same band as LLaVA-1.5 | `configs/experiments/llava16/multilayer_l10-14_attn_out_question.yaml` |
 | 2026-09-08 03:45 | All 32 per-layer chains (train -> identify -> ablate) queued with `--dependency=afterok:26457770`, span layers and layer 0 first, so they start when the collection succeeds and not before | jobs 26459245-26459276 |
+| 2026-09-08 07:40 | **Collection complete** (6 h 08 m): 32 layers x 4,711,800 rows x 4096, 1.2 TB on scratch. Per-layer chains released by the dependency and running | job 26457770, `output/activations/llava16_clevr_lite_question/collection_info.json` |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
@@ -123,11 +124,15 @@ deterministic, which is why it is gitignored -- and the regenerated val split is
 its questions and pixel-identical in its images (verified above). The sync script's exclusions
 lost their trailing slashes so a symlink cannot slip through again.
 
+## The row count confirms the tokenizer finding exactly
+
+The 32-layer collection over the train split gives **4,711,800 rows per layer** from 186,638
+samples. LLaVA-1.5's cache holds 4,898,438. The difference is 186,638 -- the sample count, to the
+row: exactly one question position fewer per sample, on every sample, which is the
+`add_prefix_space` difference and nothing else. The image block grew by 600 tokens and the text
+side lost precisely one.
+
 ## Open items
 
-- Row count per sample for SAE training is 24 question positions, not 25 as on LLaVA-1.5, so the
-  collection will not reproduce the 4,898,438 rows/layer of the LLaVA-1.5 cache. Check
-  `collection_info.json` against 24 x the train-split question count rather than against that
-  number.
 - Whether `replace` mode survives the pass-through gate (LLaVA-1.5: +0.00109). If it does not,
   the delta fragment applies and the reason gets recorded here.
