@@ -70,6 +70,7 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 01:35 | **Knockout sweeps submitted**, one job per flow: full val split, `filter_correct`, window 1, all 32 layers, 249,280 steps each at ~7 steps/s (ETA ~10 h) | jobs 26457768 (Image->Question), 26457769 (Image->Last) |
 | 2026-09-08 01:35 | **Activation collection submitted**: train split, all 32 layers, question positions, writing to scratch (~1.2 TB: 186,638 samples x 24 positions x 4096 x fp16 x 32 layers) | job 26457770 |
 | 2026-09-08 02:1x | Span fixed from the partial `Image->Question` sweep (n = 1,546): **layers 10-14**, concentrated 11, sensitivity span drops 13 -- the same band as LLaVA-1.5 | `configs/experiments/llava16/multilayer_l10-14_attn_out_question.yaml` |
+| 2026-09-08 03:45 | All 32 per-layer chains (train -> identify -> ablate) queued with `--dependency=afterok:26457770`, span layers and layer 0 first, so they start when the collection succeeds and not before | jobs 26459245-26459276 |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
