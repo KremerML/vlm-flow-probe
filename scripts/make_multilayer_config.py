@@ -8,6 +8,7 @@ layer, downstream knockout anchored at the strongest and the top layer, and a
 sensitivity span dropping one layer.
 
     python scripts/make_multilayer_config.py --tag gemma3_4b --site attn_z \
+        --ablation_fragment ../../fragments/ablation_gemma_delta.yaml \
         --span 10 11 12 13 14 --concentrated 11 --drop 13 --n_layers 34
 """
 
@@ -42,6 +43,13 @@ def main():
     )
     parser.add_argument("--model_fragment", default=None)
     parser.add_argument("--sae_fragment", default=None)
+    parser.add_argument(
+        "--ablation_fragment",
+        default=None,
+        help="extra ablation fragment included after ablation_default (e.g. "
+        "../../fragments/ablation_gemma_delta.yaml for a delta-mode run). Omit to "
+        "keep the published replace-mode protocol.",
+    )
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
@@ -64,14 +72,16 @@ def main():
             "../../fragments/dataset_clevr_lite.yaml",
             args.sae_fragment or "../../fragments/sae_gemma_scope2_attn.yaml",
             "../../fragments/ablation_default.yaml",
-            "../../fragments/ablation_gemma_delta.yaml",
+            *([args.ablation_fragment] if args.ablation_fragment else []),
         ],
         "model": {"target_layer": args.concentrated},
         "dataset": {"split": "val"},
         "knockout": {"flows": ["Image->Question"], "filter_correct": False},
         "multilayer": {
             "layers": span,
-            "excluded_layers": [],
+            # Layer 0 is excluded from the span choice by the paper's rule: it is
+            # where visual information enters, not part of the mid-stack band.
+            "excluded_layers": [0],
             "encode_mode": "live",
             "encode_positions_only": True,
             "features_per_layer": 200,

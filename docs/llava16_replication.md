@@ -69,6 +69,7 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 01:31 | Cluster bring-up done on an H100: verify 15/15 at layers 0 and 11, same geometry and the same margin as locally (7.298 vs 7.297 on 32 items); forward 67 ms against the 4090's 176 ms | job 26457746, `output/llava16_bringup.json` |
 | 2026-09-08 01:35 | **Knockout sweeps submitted**, one job per flow: full val split, `filter_correct`, window 1, all 32 layers, 249,280 steps each at ~7 steps/s (ETA ~10 h) | jobs 26457768 (Image->Question), 26457769 (Image->Last) |
 | 2026-09-08 01:35 | **Activation collection submitted**: train split, all 32 layers, question positions, writing to scratch (~1.2 TB: 186,638 samples x 24 positions x 4096 x fp16 x 32 layers) | job 26457770 |
+| 2026-09-08 02:1x | Span fixed from the partial `Image->Question` sweep (n = 1,546): **layers 10-14**, concentrated 11, sensitivity span drops 13 -- the same band as LLaVA-1.5 | `configs/experiments/llava16/multilayer_l10-14_attn_out_question.yaml` |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
@@ -84,6 +85,32 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 Single-sample knockout landscape (sample 0, `Image->Question`, window 1) peaks at layer 11 for
 both models: 0.36 for 1.5, 2.05 for 1.6, with 1.6 also showing 0.90 at layer 10 and 1.02 at
 layer 21. One sample -- the span decision comes from the full sweep, not from this.
+
+## Span decision (preliminary sweep, n = 1,546 of 7,790)
+
+Per-layer `Image->Question` margin drop, window 1, correctly answered validation items:
+
+| layer | 0 | 8 | 10 | 11 | 12 | 13 | 14 | 17 | 19 | 20 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| drop | +1.938 | +0.344 | +0.460 | **+1.519** | +0.231 | -0.210 | **+1.318** | +0.527 | +0.640 | +0.295 |
+| Cohen's d | +1.02 | +0.77 | +1.11 | +1.59 | +0.70 | -0.93 | +1.51 | +0.69 | +1.25 | +1.00 |
+
+By the paper's rule -- the contiguous band containing the strongest `Image->Question` layers
+other than layer 0, inhibitory members retained -- the span is **layers 10-14**, the concentrated
+layer is **11** and the sensitivity span drops **13**.
+
+That is the *same* band, the same strongest layer and the same dropped layer as the published
+LLaVA-1.5 run, so the generated matrix config is field-for-field identical to the archived one in
+its condition set (`configs/experiments/llava16/multilayer_l10-14_attn_out_question.yaml` against
+`configs/frozen/multilayer_l10-14_attn_out_question.yaml`: nested spans, non-nested spans, budget
+curve, downstream anchors 11 and 14, sensitivity span). The comparison is like-for-like without
+having to run a second matrix at the LLaVA-1.5 span.
+
+The top-3 layers are also identical to LLaVA-1.5's (`[0, 11, 14]`, the set the equivalence gate
+pins). Doubling the visual context did not move where the image-to-question flow lives.
+
+To be re-checked against the completed sweep; the Gemma decision taken at n = 1,896 held at
+n = 7,790.
 
 ## Incidents
 
