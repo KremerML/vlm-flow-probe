@@ -74,7 +74,9 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 07:40 | **Collection complete** (6 h 08 m): 32 layers x 4,711,800 rows x 4096, 1.2 TB on scratch. Per-layer chains released by the dependency and running | job 26457770, `output/activations/llava16_clevr_lite_question/collection_info.json` |
 | 2026-09-08 10:00 | `Image->Last` sweep complete (n = 7,186 correctly answered of 7,790, 92.2% accuracy); peaks late: layer 19 (+0.558), 17 (+0.411), 14 (+0.343) | job 26457769, `.../llava16_knockout_clevr_lite_il/knockout/knockout_summary.json` |
 | 2026-09-08 10:00 | All 32 dictionaries trained; 29 of 32 chains through identify + ablate | jobs 26459245-26459276, `output/experiments/llava16_sae_fit_table.json` |
-| 2026-09-08 10:05 | Replace-mode pass-through gate submitted | job 26464470 |
+| 2026-09-08 10:05 | `Image->Question` sweep complete (n = 7,186). The n = 1,546 span decision holds unchanged: same ranking, layers 11 (+1.512) and 14 (+1.313) dominating, 13 inhibitory (-0.203) | job 26457768 |
+| 2026-09-08 10:52 | **Replace-mode pass-through gate passes**: worst span drop +0.00777 against a 0.02 threshold. The run stays in the published replace-mode protocol | job 26464470 |
+| 2026-09-08 11:00 | Full matrix submitted (`--phases all`, includes the isolation phase), 32/32 per-layer chains complete | job 26465465 |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
@@ -152,7 +154,33 @@ on the same task: explained variance 0.74-0.82 with 48-79% dead. The preconditio
 Gemma replication is comfortably satisfied here, which is the point of training dictionaries on
 the model and task being studied.
 
+## Pass-through: the second precondition holds, and replace mode stays
+
+With nothing ablated and the dictionary's reconstruction substituted at every span layer:
+
+| condition | margin drop |
+|---|---|
+| `gate_none` (harness check) | +0.00000 |
+| passthrough L14 | +0.00481 |
+| passthrough L13-14 | +0.00626 |
+| passthrough L12-14 | +0.00671 |
+| passthrough L11-14 | +0.00612 |
+| passthrough L10-14 | +0.00777 |
+| delta passthrough L10-14 | +0.00000 |
+
+The worst case is +0.008 against a 0.02 threshold, on a baseline margin of 7.63 -- a tenth of a
+percent. LLaVA-1.5's was +0.00109; the difference is partly the ~2x margin scale from the
+tokenization above. Gemma's, for contrast, ran to +1.56 and changed sign with the span, which is
+why that run had to leave the protocol. **This run stays in replace mode**, so the ablation
+numbers are directly comparable to the published ones.
+
+## Full sweep confirms the span
+
+At n = 7,186 the `Image->Question` ranking is unchanged from n = 1,546: 0 (+1.944), 11 (+1.512),
+14 (+1.313), 19 (+0.639), 17 (+0.510), 10 (+0.464), with 13 inhibitory (-0.203). Span 10-14
+stands, as the Gemma decision did.
+
 ## Open items
 
-- Whether `replace` mode survives the pass-through gate (LLaVA-1.5: +0.00109). If it does not,
-  the delta fragment applies and the reason gets recorded here.
+- The matrix itself: whether single-layer ablation saturates against the knockout ceiling, what
+  the same budget spread over the span recovers, and the pooled `R = A/K`.
