@@ -72,6 +72,9 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 02:1x | Span fixed from the partial `Image->Question` sweep (n = 1,546): **layers 10-14**, concentrated 11, sensitivity span drops 13 -- the same band as LLaVA-1.5 | `configs/experiments/llava16/multilayer_l10-14_attn_out_question.yaml` |
 | 2026-09-08 03:45 | All 32 per-layer chains (train -> identify -> ablate) queued with `--dependency=afterok:26457770`, span layers and layer 0 first, so they start when the collection succeeds and not before | jobs 26459245-26459276 |
 | 2026-09-08 07:40 | **Collection complete** (6 h 08 m): 32 layers x 4,711,800 rows x 4096, 1.2 TB on scratch. Per-layer chains released by the dependency and running | job 26457770, `output/activations/llava16_clevr_lite_question/collection_info.json` |
+| 2026-09-08 10:00 | `Image->Last` sweep complete (n = 7,186 correctly answered of 7,790, 92.2% accuracy); peaks late: layer 19 (+0.558), 17 (+0.411), 14 (+0.343) | job 26457769, `.../llava16_knockout_clevr_lite_il/knockout/knockout_summary.json` |
+| 2026-09-08 10:00 | All 32 dictionaries trained; 29 of 32 chains through identify + ablate | jobs 26459245-26459276, `output/experiments/llava16_sae_fit_table.json` |
+| 2026-09-08 10:05 | Replace-mode pass-through gate submitted | job 26464470 |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
@@ -131,6 +134,23 @@ samples. LLaVA-1.5's cache holds 4,898,438. The difference is 186,638 -- the sam
 row: exactly one question position fewer per sample, on every sample, which is the
 `add_prefix_space` difference and nothing else. The image block grew by 600 tokens and the text
 side lost precisely one.
+
+## Dictionary fit: the first precondition holds
+
+All 32 dictionaries, trained on this task's own activations with the LLaVA recipe
+(`output/experiments/llava16_sae_fit_table.json`, written by `scripts/sae_fit_table.py`):
+
+| | explained variance | mean L0 | dead fraction |
+|---|---|---|---|
+| range over 32 layers | 0.99893 - 0.99995 | 784 - 1,768 | 0.0002 - 0.79 |
+| span layers 10-14 | 0.99893 - 0.99957 | 1,221 - 1,499 | 0.0002 - 0.0016 |
+| layer 0 | 0.99987 | 1,468 | 0.79 |
+
+The dead fraction is high only at layers 0 and 1 (0.79, 0.51), as it was on LLaVA-1.5 (74% at
+layer 0); everywhere the analysis uses it is below 1.5%. Compare Gemma's pre-trained dictionaries
+on the same task: explained variance 0.74-0.82 with 48-79% dead. The precondition that broke the
+Gemma replication is comfortably satisfied here, which is the point of training dictionaries on
+the model and task being studied.
 
 ## Open items
 
