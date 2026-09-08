@@ -1,0 +1,35 @@
+{
+  "n_processed": 7790,
+  "n_skipped": 0,
+  "n_features": 32768,
+  "target": "margin",
+  "position_type": "question",
+  "error_term": false,
+  "causal_score": {
+    "min": NaN,
+    "max": NaN,
+    "mean": NaN,
+    "p50": NaN,
+    "p90": NaN,
+    "p95": NaN,
+    "p99": NaN
+  },
+  "activation_mean": {
+    "min": 0.0,
+    "max": 0.07028615446773206,
+    "mean": 7.263374402322136e-05,
+    "p50": 0.0,
+    "p90": 2.280334227831465e-09,
+    "p95": 0.0003283938059879239,
+    "p99": 0.0015434104750296602
+  },
+  "gradient_mean": {
+    "min": NaN,
+    "max": NaN,
+    "mean": NaN,
+    "p50": NaN,
+    "p90": NaN,
+    "p95": NaN,
+    "p99": NaN
+  }
+}

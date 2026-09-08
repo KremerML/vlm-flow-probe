@@ -1,0 +1,1402 @@
+{
+  "2076": {
+    "name": "feature_2076",
+    "type": "causal",
+    "causal_score": 0.0032977348139573035,
+    "activation_mean": 0.3133636208200906,
+    "gradient_mean": 0.003980458970301198
+  },
+  "30589": {
+    "name": "feature_30589",
+    "type": "causal",
+    "causal_score": 0.003123558665786887,
+    "activation_mean": 0.24458738476449243,
+    "gradient_mean": 0.0052551483716350945
+  },
+  "32510": {
+    "name": "feature_32510",
+    "type": "causal",
+    "causal_score": 0.0030534874993645876,
+    "activation_mean": 0.28260117293609277,
+    "gradient_mean": 0.0046506449831778185
+  },
+  "26458": {
+    "name": "feature_26458",
+    "type": "causal",
+    "causal_score": 0.0027086762685328124,
+    "activation_mean": 0.23104111571606148,
+    "gradient_mean": 0.0047424444948715805
+  },
+  "12057": {
+    "name": "feature_12057",
+    "type": "causal",
+    "causal_score": 0.002683171527497765,
+    "activation_mean": 0.17093373063535683,
+    "gradient_mean": 0.005520596393382246
+  },
+  "19020": {
+    "name": "feature_19020",
+    "type": "causal",
+    "causal_score": 0.002642197926665566,
+    "activation_mean": 0.2707261459583916,
+    "gradient_mean": 0.004527174633543876
+  },
+  "23302": {
+    "name": "feature_23302",
+    "type": "causal",
+    "causal_score": 0.0025244681719850726,
+    "activation_mean": 0.20603937189739116,
+    "gradient_mean": 0.005047992117452944
+  },
+  "3961": {
+    "name": "feature_3961",
+    "type": "causal",
+    "causal_score": 0.002386058306618275,
+    "activation_mean": 0.21293888957250448,
+    "gradient_mean": 0.0045711190288450654
+  },
+  "30301": {
+    "name": "feature_30301",
+    "type": "causal",
+    "causal_score": 0.002364726464005523,
+    "activation_mean": 0.19843649762719678,
+    "gradient_mean": 0.005468400998936341
+  },
+  "32419": {
+    "name": "feature_32419",
+    "type": "causal",
+    "causal_score": 0.0023500716279740374,
+    "activation_mean": 0.1800221341880892,
+    "gradient_mean": 0.004336319543414992
+  },
+  "3005": {
+    "name": "feature_3005",
+    "type": "causal",
+    "causal_score": 0.002305140426041676,
+    "activation_mean": 0.20651034233764062,
+    "gradient_mean": 0.004073804118494182
+  },
+  "18741": {
+    "name": "feature_18741",
+    "type": "causal",
+    "causal_score": 0.0022660728571835057,
+    "activation_mean": 0.23097744325513023,
+    "gradient_mean": 0.004521868650341796
+  },
+  "32084": {
+    "name": "feature_32084",
+    "type": "causal",
+    "causal_score": 0.0021739170433937357,
+    "activation_mean": 0.17476886459632235,
+    "gradient_mean": 0.0046917489440277795
+  },
+  "31877": {
+    "name": "feature_31877",
+    "type": "causal",
+    "causal_score": 0.0021086659601957584,
+    "activation_mean": 0.2188397740785018,
+    "gradient_mean": 0.004731627588753023
+  },
+  "9038": {
+    "name": "feature_9038",
+    "type": "causal",
+    "causal_score": 0.002096572924450804,
+    "activation_mean": 0.19384082049533094,
+    "gradient_mean": 0.0049079599978646745
+  },
+  "12881": {
+    "name": "feature_12881",
+    "type": "causal",
+    "causal_score": 0.0020717493874491317,
+    "activation_mean": 0.19161237314659074,
+    "gradient_mean": 0.004110930745532636
+  },
+  "14342": {
+    "name": "feature_14342",
+    "type": "causal",
+    "causal_score": 0.002070836885226076,
+    "activation_mean": 0.22076067202873959,
+    "gradient_mean": 0.0047019596915259905
+  },
+  "10067": {
+    "name": "feature_10067",
+    "type": "causal",
+    "causal_score": 0.0020484803383069667,
+    "activation_mean": 0.18521913594215994,
+    "gradient_mean": 0.004403804603834674
+  },
+  "31553": {
+    "name": "feature_31553",
+    "type": "causal",
+    "causal_score": 0.0020043681806738477,
+    "activation_mean": 0.2215421850820561,
+    "gradient_mean": 0.004458707736678653
+  },
+  "6582": {
+    "name": "feature_6582",
+    "type": "causal",
+    "causal_score": 0.0019422176521423449,
+    "activation_mean": 0.2289326271585001,
+    "gradient_mean": 0.004033041347542405
+  },
+  "12778": {
+    "name": "feature_12778",
+    "type": "causal",
+    "causal_score": 0.0019422034170731215,
+    "activation_mean": 0.22864159476848867,
+    "gradient_mean": 0.003939150942126959
+  },
+  "4388": {
+    "name": "feature_4388",
+    "type": "causal",
+    "causal_score": 0.0019380285727473327,
+    "activation_mean": 0.14924311935088677,
+    "gradient_mean": 0.0037962104751583813
+  },
+  "23642": {
+    "name": "feature_23642",
+    "type": "causal",
+    "causal_score": 0.0019272228636559884,
+    "activation_mean": 0.3429505177119577,
+    "gradient_mean": 0.004249547449339884
+  },
+  "17804": {
+    "name": "feature_17804",
+    "type": "causal",
+    "causal_score": 0.001890149266822827,
+    "activation_mean": 0.18540207381110366,
+    "gradient_mean": 0.00533656565865815
+  },
+  "21013": {
+    "name": "feature_21013",
+    "type": "causal",
+    "causal_score": 0.0018720265879016759,
+    "activation_mean": 0.21155147377368116,
+    "gradient_mean": 0.0024107329608676464
+  },
+  "21843": {
+    "name": "feature_21843",
+    "type": "causal",
+    "causal_score": 0.001869111420977851,
+    "activation_mean": 0.19246685644743225,
+    "gradient_mean": 0.004623479016163459
+  },
+  "18851": {
+    "name": "feature_18851",
+    "type": "causal",
+    "causal_score": 0.0018616450996419406,
+    "activation_mean": 0.18677671667958332,
+    "gradient_mean": 0.003260325349128951
+  },
+  "14193": {
+    "name": "feature_14193",
+    "type": "causal",
+    "causal_score": 0.001861510294285873,
+    "activation_mean": 0.16977311596609126,
+    "gradient_mean": 0.005934664895530881
+  },
+  "6407": {
+    "name": "feature_6407",
+    "type": "causal",
+    "causal_score": 0.001836833395147191,
+    "activation_mean": 0.2172105791661721,
+    "gradient_mean": 0.004782289692884567
+  },
+  "21484": {
+    "name": "feature_21484",
+    "type": "causal",
+    "causal_score": 0.0017456940052542611,
+    "activation_mean": 0.2014998427543201,
+    "gradient_mean": 0.004007765648018154
+  },
+  "11424": {
+    "name": "feature_11424",
+    "type": "causal",
+    "causal_score": 0.001743749181978869,
+    "activation_mean": 0.17820725805521853,
+    "gradient_mean": 0.004529590281629182
+  },
+  "28909": {
+    "name": "feature_28909",
+    "type": "causal",
+    "causal_score": 0.0017231967645649174,
+    "activation_mean": 0.22811804054273874,
+    "gradient_mean": 0.003541575595014699
+  },
+  "29854": {
+    "name": "feature_29854",
+    "type": "causal",
+    "causal_score": 0.0017152772621148603,
+    "activation_mean": 0.1723477267226221,
+    "gradient_mean": 0.00453209481953012
+  },
+  "2013": {
+    "name": "feature_2013",
+    "type": "causal",
+    "causal_score": 0.0017140904549354315,
+    "activation_mean": 0.2020545488641871,
+    "gradient_mean": 0.004099581742682225
+  },
+  "14243": {
+    "name": "feature_14243",
+    "type": "causal",
+    "causal_score": 0.0017031445981905708,
+    "activation_mean": 0.17457455597705518,
+    "gradient_mean": 0.004512922577292446
+  },
+  "4758": {
+    "name": "feature_4758",
+    "type": "causal",
+    "causal_score": 0.0016872153105266542,
+    "activation_mean": 0.21318717397491188,
+    "gradient_mean": 0.0042690334722877326
+  },
+  "12868": {
+    "name": "feature_12868",
+    "type": "causal",
+    "causal_score": 0.001667924552564445,
+    "activation_mean": 0.20090234087820766,
+    "gradient_mean": 0.00464072742745841
+  },
+  "19121": {
+    "name": "feature_19121",
+    "type": "causal",
+    "causal_score": 0.0016386889654152446,
+    "activation_mean": 0.14372887553573038,
+    "gradient_mean": 0.003882206006557531
+  },
+  "18092": {
+    "name": "feature_18092",
+    "type": "causal",
+    "causal_score": 0.0016234183524443412,
+    "activation_mean": 0.20376519659349984,
+    "gradient_mean": 0.003926487896489505
+  },
+  "1425": {
+    "name": "feature_1425",
+    "type": "causal",
+    "causal_score": 0.0016218170655582103,
+    "activation_mean": 0.1853773900791907,
+    "gradient_mean": 0.004084723191932071
+  },
+  "7887": {
+    "name": "feature_7887",
+    "type": "causal",
+    "causal_score": 0.001607226231288139,
+    "activation_mean": 0.19553441505362693,
+    "gradient_mean": 0.003544091738013859
+  },
+  "12932": {
+    "name": "feature_12932",
+    "type": "causal",
+    "causal_score": 0.0016056640988335506,
+    "activation_mean": 0.17977906615354972,
+    "gradient_mean": 0.004227075245830951
+  },
+  "23908": {
+    "name": "feature_23908",
+    "type": "causal",
+    "causal_score": 0.0015987312800416417,
+    "activation_mean": 0.19466732208293042,
+    "gradient_mean": 0.0041929486107836755
+  },
+  "4876": {
+    "name": "feature_4876",
+    "type": "causal",
+    "causal_score": 0.0015867579784382346,
+    "activation_mean": 0.19096325248221607,
+    "gradient_mean": 0.003538707024351316
+  },
+  "17087": {
+    "name": "feature_17087",
+    "type": "causal",
+    "causal_score": 0.0015396516287067164,
+    "activation_mean": 0.14032546601883483,
+    "gradient_mean": 0.004486658692660153
+  },
+  "22244": {
+    "name": "feature_22244",
+    "type": "causal",
+    "causal_score": 0.001533669965053012,
+    "activation_mean": 0.16880663417026268,
+    "gradient_mean": 0.005114581578359455
+  },
+  "13539": {
+    "name": "feature_13539",
+    "type": "causal",
+    "causal_score": 0.0015203796192242696,
+    "activation_mean": 0.21432839506455195,
+    "gradient_mean": 0.0032349498604755463
+  },
+  "22267": {
+    "name": "feature_22267",
+    "type": "causal",
+    "causal_score": 0.0015191193035671779,
+    "activation_mean": 0.19182131172460296,
+    "gradient_mean": 0.0037150954973970006
+  },
+  "698": {
+    "name": "feature_698",
+    "type": "causal",
+    "causal_score": 0.0015155323433676472,
+    "activation_mean": 0.20207171934120002,
+    "gradient_mean": 0.003593177806086293
+  },
+  "18531": {
+    "name": "feature_18531",
+    "type": "causal",
+    "causal_score": 0.0014990428143869423,
+    "activation_mean": 0.1867503997804035,
+    "gradient_mean": 0.00400946148215337
+  },
+  "24937": {
+    "name": "feature_24937",
+    "type": "causal",
+    "causal_score": 0.001495682336610819,
+    "activation_mean": 0.20816547116491851,
+    "gradient_mean": 0.0035414057675138143
+  },
+  "2711": {
+    "name": "feature_2711",
+    "type": "causal",
+    "causal_score": 0.0014828161858557215,
+    "activation_mean": 0.22565409538930278,
+    "gradient_mean": 0.0036901628053107507
+  },
+  "31934": {
+    "name": "feature_31934",
+    "type": "causal",
+    "causal_score": 0.0014770485721104863,
+    "activation_mean": 0.16757903065059013,
+    "gradient_mean": 0.0042590075671171896
+  },
+  "17135": {
+    "name": "feature_17135",
+    "type": "causal",
+    "causal_score": 0.0014616210132256937,
+    "activation_mean": 0.17692044492480996,
+    "gradient_mean": 0.0042472534233674916
+  },
+  "13821": {
+    "name": "feature_13821",
+    "type": "causal",
+    "causal_score": 0.0014520633501731923,
+    "activation_mean": 0.18830530274329427,
+    "gradient_mean": 0.0037581340982103468
+  },
+  "24807": {
+    "name": "feature_24807",
+    "type": "causal",
+    "causal_score": 0.0014331431009287606,
+    "activation_mean": 0.16548874428871163,
+    "gradient_mean": 0.004948052388211815
+  },
+  "11098": {
+    "name": "feature_11098",
+    "type": "causal",
+    "causal_score": 0.0014324484531981667,
+    "activation_mean": 0.21588709973783946,
+    "gradient_mean": 0.004253393709885234
+  },
+  "16065": {
+    "name": "feature_16065",
+    "type": "causal",
+    "causal_score": 0.001429882389078585,
+    "activation_mean": 0.16782266256687578,
+    "gradient_mean": 0.004418880949801119
+  },
+  "31240": {
+    "name": "feature_31240",
+    "type": "causal",
+    "causal_score": 0.0014296183779060694,
+    "activation_mean": 0.15703020283954747,
+    "gradient_mean": 0.004604268572140791
+  },
+  "15600": {
+    "name": "feature_15600",
+    "type": "causal",
+    "causal_score": 0.0014263969301288324,
+    "activation_mean": 0.19600866069689643,
+    "gradient_mean": 0.003477324957757458
+  },
+  "3754": {
+    "name": "feature_3754",
+    "type": "causal",
+    "causal_score": 0.0014204405746175942,
+    "activation_mean": 0.16697895557396067,
+    "gradient_mean": 0.003785025276302268
+  },
+  "11026": {
+    "name": "feature_11026",
+    "type": "causal",
+    "causal_score": 0.001419411177234515,
+    "activation_mean": 0.16429197834720966,
+    "gradient_mean": 0.0043623857346001115
+  },
+  "18347": {
+    "name": "feature_18347",
+    "type": "causal",
+    "causal_score": 0.0014134004230126312,
+    "activation_mean": 0.19911540031375718,
+    "gradient_mean": 0.003338925607225395
+  },
+  "19698": {
+    "name": "feature_19698",
+    "type": "causal",
+    "causal_score": 0.0014101106106407383,
+    "activation_mean": 0.18946281026329115,
+    "gradient_mean": 0.0034006207965848493
+  },
+  "18289": {
+    "name": "feature_18289",
+    "type": "causal",
+    "causal_score": 0.00138723248874928,
+    "activation_mean": 0.13901133666936408,
+    "gradient_mean": 0.004897627918664198
+  },
+  "12360": {
+    "name": "feature_12360",
+    "type": "causal",
+    "causal_score": 0.0013846878160127998,
+    "activation_mean": 0.16277121504737646,
+    "gradient_mean": 0.004253000587918969
+  },
+  "1900": {
+    "name": "feature_1900",
+    "type": "causal",
+    "causal_score": 0.0013830016508388147,
+    "activation_mean": 0.24970884390404885,
+    "gradient_mean": 0.0032373612223997646
+  },
+  "11275": {
+    "name": "feature_11275",
+    "type": "causal",
+    "causal_score": 0.0013826126718713486,
+    "activation_mean": 0.12696467049166427,
+    "gradient_mean": 0.004058328202243569
+  },
+  "29477": {
+    "name": "feature_29477",
+    "type": "causal",
+    "causal_score": 0.0013800249599057533,
+    "activation_mean": 0.1692675244632214,
+    "gradient_mean": 0.003648130544343251
+  },
+  "3510": {
+    "name": "feature_3510",
+    "type": "causal",
+    "causal_score": 0.0013699151223566372,
+    "activation_mean": 0.1549273988911081,
+    "gradient_mean": 0.004052531290481068
+  },
+  "18470": {
+    "name": "feature_18470",
+    "type": "causal",
+    "causal_score": 0.0013683880310224976,
+    "activation_mean": 0.20067620442962616,
+    "gradient_mean": 0.004354931364908625
+  },
+  "2305": {
+    "name": "feature_2305",
+    "type": "causal",
+    "causal_score": 0.0013680833515405744,
+    "activation_mean": 0.17203850326210796,
+    "gradient_mean": 0.0035054487916126855
+  },
+  "11176": {
+    "name": "feature_11176",
+    "type": "causal",
+    "causal_score": 0.001347434047065001,
+    "activation_mean": 0.2215277354456532,
+    "gradient_mean": 0.0030142005058165357
+  },
+  "11178": {
+    "name": "feature_11178",
+    "type": "causal",
+    "causal_score": 0.0013468713763707038,
+    "activation_mean": 0.20815637396249217,
+    "gradient_mean": 0.003157661872406625
+  },
+  "28265": {
+    "name": "feature_28265",
+    "type": "causal",
+    "causal_score": 0.0013416749674347562,
+    "activation_mean": 0.15111807049114606,
+    "gradient_mean": 0.0042138200433774154
+  },
+  "26318": {
+    "name": "feature_26318",
+    "type": "causal",
+    "causal_score": 0.0013388406032302045,
+    "activation_mean": 0.11804562623185777,
+    "gradient_mean": 0.004739156651613392
+  },
+  "6615": {
+    "name": "feature_6615",
+    "type": "causal",
+    "causal_score": 0.0013378706656057753,
+    "activation_mean": 0.21096506486330013,
+    "gradient_mean": 0.0038341432327729805
+  },
+  "25941": {
+    "name": "feature_25941",
+    "type": "causal",
+    "causal_score": 0.001337199244367342,
+    "activation_mean": 0.1831276859796399,
+    "gradient_mean": 0.004004645224828608
+  },
+  "22630": {
+    "name": "feature_22630",
+    "type": "causal",
+    "causal_score": 0.0013357237633001078,
+    "activation_mean": 0.1806655920095101,
+    "gradient_mean": 0.003358022597672499
+  },
+  "19588": {
+    "name": "feature_19588",
+    "type": "causal",
+    "causal_score": 0.00130475008314132,
+    "activation_mean": 0.1931903979232934,
+    "gradient_mean": 0.0032006932371334844
+  },
+  "20785": {
+    "name": "feature_20785",
+    "type": "causal",
+    "causal_score": 0.0013010268236616335,
+    "activation_mean": 0.20818541641699792,
+    "gradient_mean": 0.003742130229497521
+  },
+  "2930": {
+    "name": "feature_2930",
+    "type": "causal",
+    "causal_score": 0.0012661993919168772,
+    "activation_mean": 0.14094507320376354,
+    "gradient_mean": 0.0046586696393896955
+  },
+  "32611": {
+    "name": "feature_32611",
+    "type": "causal",
+    "causal_score": 0.0012544484183154556,
+    "activation_mean": 0.16048941822897103,
+    "gradient_mean": 0.003983894027040288
+  },
+  "9607": {
+    "name": "feature_9607",
+    "type": "causal",
+    "causal_score": 0.001253141131254591,
+    "activation_mean": 0.2205711922860574,
+    "gradient_mean": 0.00357068658657913
+  },
+  "13323": {
+    "name": "feature_13323",
+    "type": "causal",
+    "causal_score": 0.0012523984113729134,
+    "activation_mean": 0.14626211165420624,
+    "gradient_mean": 0.004365106694726393
+  },
+  "20313": {
+    "name": "feature_20313",
+    "type": "causal",
+    "causal_score": 0.0012519403471016213,
+    "activation_mean": 0.18895624359646412,
+    "gradient_mean": 0.0034340510820232892
+  },
+  "5168": {
+    "name": "feature_5168",
+    "type": "causal",
+    "causal_score": 0.0012465387942840762,
+    "activation_mean": 0.16546382079467617,
+    "gradient_mean": 0.0038483540422688998
+  },
+  "29064": {
+    "name": "feature_29064",
+    "type": "causal",
+    "causal_score": 0.0012422552165873724,
+    "activation_mean": 0.16528424678348838,
+    "gradient_mean": 0.004053837753046574
+  },
+  "1091": {
+    "name": "feature_1091",
+    "type": "causal",
+    "causal_score": 0.0012374394937937788,
+    "activation_mean": 0.19578375957131539,
+    "gradient_mean": 0.004832081509634807
+  },
+  "1928": {
+    "name": "feature_1928",
+    "type": "causal",
+    "causal_score": 0.001235689063992695,
+    "activation_mean": 0.21177044293779845,
+    "gradient_mean": 0.0034999432574478796
+  },
+  "25437": {
+    "name": "feature_25437",
+    "type": "causal",
+    "causal_score": 0.001233381101399372,
+    "activation_mean": 0.1856028294767013,
+    "gradient_mean": 0.0032716365888253315
+  },
+  "15660": {
+    "name": "feature_15660",
+    "type": "causal",
+    "causal_score": 0.0012264307906187987,
+    "activation_mean": 0.15881964511289445,
+    "gradient_mean": 0.0036253085897175
+  },
+  "27048": {
+    "name": "feature_27048",
+    "type": "causal",
+    "causal_score": 0.001213559146931805,
+    "activation_mean": 0.14446471136431563,
+    "gradient_mean": 0.004286043796122232
+  },
+  "10005": {
+    "name": "feature_10005",
+    "type": "causal",
+    "causal_score": 0.0012133736161561107,
+    "activation_mean": 0.15806906177818927,
+    "gradient_mean": 0.0040968738240458845
+  },
+  "27626": {
+    "name": "feature_27626",
+    "type": "causal",
+    "causal_score": 0.0012102667143614836,
+    "activation_mean": 0.15649521758538384,
+    "gradient_mean": 0.003553891049592489
+  },
+  "30567": {
+    "name": "feature_30567",
+    "type": "causal",
+    "causal_score": 0.0012094550249597926,
+    "activation_mean": 0.1700577240958523,
+    "gradient_mean": 0.004203951976872354
+  },
+  "22952": {
+    "name": "feature_22952",
+    "type": "causal",
+    "causal_score": 0.001203399694029716,
+    "activation_mean": 0.18041863597508648,
+    "gradient_mean": 0.003360157655138075
+  },
+  "5825": {
+    "name": "feature_5825",
+    "type": "causal",
+    "causal_score": 0.0012027512962576063,
+    "activation_mean": 0.12129462499109328,
+    "gradient_mean": 0.004794506773332299
+  },
+  "3991": {
+    "name": "feature_3991",
+    "type": "causal",
+    "causal_score": 0.0011994903462295653,
+    "activation_mean": 0.1384665219120404,
+    "gradient_mean": 0.004512604678072698
+  },
+  "25485": {
+    "name": "feature_25485",
+    "type": "causal",
+    "causal_score": 0.0011989080821276892,
+    "activation_mean": 0.21461810977586732,
+    "gradient_mean": 0.0036074776133435417
+  },
+  "3263": {
+    "name": "feature_3263",
+    "type": "causal",
+    "causal_score": 0.0011941058137220216,
+    "activation_mean": 0.1722133538505213,
+    "gradient_mean": 0.00351265245077645
+  },
+  "8736": {
+    "name": "feature_8736",
+    "type": "causal",
+    "causal_score": 0.0011898867168380228,
+    "activation_mean": 0.18413691614373123,
+    "gradient_mean": 0.00334708076604419
+  },
+  "15492": {
+    "name": "feature_15492",
+    "type": "causal",
+    "causal_score": 0.0011866794139361553,
+    "activation_mean": 0.15588848213157083,
+    "gradient_mean": 0.003665399912607872
+  },
+  "627": {
+    "name": "feature_627",
+    "type": "causal",
+    "causal_score": 0.0011852498592200837,
+    "activation_mean": 0.16922009775226168,
+    "gradient_mean": 0.0037160370809735015
+  },
+  "23257": {
+    "name": "feature_23257",
+    "type": "causal",
+    "causal_score": 0.001183876881727901,
+    "activation_mean": 0.11801960607620006,
+    "gradient_mean": 0.004298941304257728
+  },
+  "5242": {
+    "name": "feature_5242",
+    "type": "causal",
+    "causal_score": 0.0011816058448062725,
+    "activation_mean": 0.13664988079735954,
+    "gradient_mean": 0.004089209871054734
+  },
+  "5918": {
+    "name": "feature_5918",
+    "type": "causal",
+    "causal_score": 0.0011745547839713771,
+    "activation_mean": 0.15151183128318677,
+    "gradient_mean": 0.004109074226392263
+  },
+  "3160": {
+    "name": "feature_3160",
+    "type": "causal",
+    "causal_score": 0.0011742763715702099,
+    "activation_mean": 0.1521369672570478,
+    "gradient_mean": 0.0038598664253110255
+  },
+  "12223": {
+    "name": "feature_12223",
+    "type": "causal",
+    "causal_score": 0.0011730914163284108,
+    "activation_mean": 0.23441548597196712,
+    "gradient_mean": 0.003448638523710935
+  },
+  "18414": {
+    "name": "feature_18414",
+    "type": "causal",
+    "causal_score": 0.0011592105170162676,
+    "activation_mean": 0.1612794946333984,
+    "gradient_mean": 0.003118322276567385
+  },
+  "31605": {
+    "name": "feature_31605",
+    "type": "causal",
+    "causal_score": 0.0011566471443079658,
+    "activation_mean": 0.18244982951527536,
+    "gradient_mean": 0.003948289506095228
+  },
+  "2573": {
+    "name": "feature_2573",
+    "type": "causal",
+    "causal_score": 0.0011521633223072173,
+    "activation_mean": 0.21402064404702614,
+    "gradient_mean": 0.0031396748913979262
+  },
+  "9335": {
+    "name": "feature_9335",
+    "type": "causal",
+    "causal_score": 0.0011504654656246075,
+    "activation_mean": 0.183343415821643,
+    "gradient_mean": 0.003007346995946603
+  },
+  "21025": {
+    "name": "feature_21025",
+    "type": "causal",
+    "causal_score": 0.001146552633462457,
+    "activation_mean": 0.2021538265001636,
+    "gradient_mean": 0.0035009837907079046
+  },
+  "586": {
+    "name": "feature_586",
+    "type": "causal",
+    "causal_score": 0.0011460883256517735,
+    "activation_mean": 0.16386229155181078,
+    "gradient_mean": 0.0033845529184689856
+  },
+  "24148": {
+    "name": "feature_24148",
+    "type": "causal",
+    "causal_score": 0.0011452774991440972,
+    "activation_mean": 0.14216768053170192,
+    "gradient_mean": 0.003934317113915626
+  },
+  "13878": {
+    "name": "feature_13878",
+    "type": "causal",
+    "causal_score": 0.0011448393177369382,
+    "activation_mean": 0.1559025950232504,
+    "gradient_mean": 0.0036783714238600566
+  },
+  "3426": {
+    "name": "feature_3426",
+    "type": "causal",
+    "causal_score": 0.0011427119253582109,
+    "activation_mean": 0.19323767151191007,
+    "gradient_mean": 0.0030912226068122856
+  },
+  "5283": {
+    "name": "feature_5283",
+    "type": "causal",
+    "causal_score": 0.0011344979151589342,
+    "activation_mean": 0.18108099225349006,
+    "gradient_mean": 0.0033855549893171593
+  },
+  "22616": {
+    "name": "feature_22616",
+    "type": "causal",
+    "causal_score": 0.001134182786289468,
+    "activation_mean": 0.14968500258508635,
+    "gradient_mean": 0.003128384165613032
+  },
+  "19700": {
+    "name": "feature_19700",
+    "type": "causal",
+    "causal_score": 0.0011263764408972858,
+    "activation_mean": 0.16993907227232305,
+    "gradient_mean": 0.0031637876291153474
+  },
+  "32044": {
+    "name": "feature_32044",
+    "type": "causal",
+    "causal_score": 0.0011237205809713174,
+    "activation_mean": 0.1302975861114164,
+    "gradient_mean": 0.0043214713679823845
+  },
+  "14067": {
+    "name": "feature_14067",
+    "type": "causal",
+    "causal_score": 0.0011235663651263195,
+    "activation_mean": 0.12018716734223096,
+    "gradient_mean": 0.003060672435240308
+  },
+  "2906": {
+    "name": "feature_2906",
+    "type": "causal",
+    "causal_score": 0.0011199285533073586,
+    "activation_mean": 0.1687161064896833,
+    "gradient_mean": 0.0038727757838986267
+  },
+  "14510": {
+    "name": "feature_14510",
+    "type": "causal",
+    "causal_score": 0.001114075046901635,
+    "activation_mean": 0.16998583435897496,
+    "gradient_mean": 0.0036222240721701677
+  },
+  "23090": {
+    "name": "feature_23090",
+    "type": "causal",
+    "causal_score": 0.001108262936501487,
+    "activation_mean": 0.16198196539533383,
+    "gradient_mean": 0.003265687031454714
+  },
+  "31244": {
+    "name": "feature_31244",
+    "type": "causal",
+    "causal_score": 0.0011003307757326579,
+    "activation_mean": 0.1886413620466866,
+    "gradient_mean": 0.0027565334351875
+  },
+  "9069": {
+    "name": "feature_9069",
+    "type": "causal",
+    "causal_score": 0.0010943121585309543,
+    "activation_mean": 0.1796405664620029,
+    "gradient_mean": 0.003644001828575332
+  },
+  "16182": {
+    "name": "feature_16182",
+    "type": "causal",
+    "causal_score": 0.001091853422095764,
+    "activation_mean": 0.13252157976896298,
+    "gradient_mean": 0.003903102654754812
+  },
+  "19712": {
+    "name": "feature_19712",
+    "type": "causal",
+    "causal_score": 0.0010909492491657559,
+    "activation_mean": 0.24750390697428443,
+    "gradient_mean": 0.003300873078486556
+  },
+  "30972": {
+    "name": "feature_30972",
+    "type": "causal",
+    "causal_score": 0.0010880951167632205,
+    "activation_mean": 0.23823528413652456,
+    "gradient_mean": 0.003226520145934826
+  },
+  "31606": {
+    "name": "feature_31606",
+    "type": "causal",
+    "causal_score": 0.0010866424032326025,
+    "activation_mean": 0.15783870223101434,
+    "gradient_mean": 0.0035221380499174844
+  },
+  "4743": {
+    "name": "feature_4743",
+    "type": "causal",
+    "causal_score": 0.0010705409396298345,
+    "activation_mean": 0.15841270052135678,
+    "gradient_mean": 0.0035368732831277078
+  },
+  "5226": {
+    "name": "feature_5226",
+    "type": "causal",
+    "causal_score": 0.0010577975910961374,
+    "activation_mean": 0.15660505876667194,
+    "gradient_mean": 0.003352927776068193
+  },
+  "26257": {
+    "name": "feature_26257",
+    "type": "causal",
+    "causal_score": 0.0010533391133624244,
+    "activation_mean": 0.15267051731419196,
+    "gradient_mean": 0.003418207233959979
+  },
+  "19850": {
+    "name": "feature_19850",
+    "type": "causal",
+    "causal_score": 0.001048347475888674,
+    "activation_mean": 0.13906335243488996,
+    "gradient_mean": 0.0035085123673998077
+  },
+  "20704": {
+    "name": "feature_20704",
+    "type": "causal",
+    "causal_score": 0.0010433478913564637,
+    "activation_mean": 0.14925535306482743,
+    "gradient_mean": 0.0037679662901197713
+  },
+  "3399": {
+    "name": "feature_3399",
+    "type": "causal",
+    "causal_score": 0.001042562864932618,
+    "activation_mean": 0.18295995720084732,
+    "gradient_mean": 0.002778359711219811
+  },
+  "18319": {
+    "name": "feature_18319",
+    "type": "causal",
+    "causal_score": 0.0010360630478053177,
+    "activation_mean": 0.18466927150936274,
+    "gradient_mean": 0.002765241414301823
+  },
+  "25082": {
+    "name": "feature_25082",
+    "type": "causal",
+    "causal_score": 0.0010350082414963173,
+    "activation_mean": 0.14309217838166385,
+    "gradient_mean": 0.003861338935559466
+  },
+  "17692": {
+    "name": "feature_17692",
+    "type": "causal",
+    "causal_score": 0.0010302441874974228,
+    "activation_mean": 0.16064908869889719,
+    "gradient_mean": 0.0032161188277353763
+  },
+  "12115": {
+    "name": "feature_12115",
+    "type": "causal",
+    "causal_score": 0.0010297125521504806,
+    "activation_mean": 0.16180723114166318,
+    "gradient_mean": 0.003296076642607598
+  },
+  "28806": {
+    "name": "feature_28806",
+    "type": "causal",
+    "causal_score": 0.00102648547223612,
+    "activation_mean": 0.12325348982991548,
+    "gradient_mean": 0.003796452885083119
+  },
+  "23792": {
+    "name": "feature_23792",
+    "type": "causal",
+    "causal_score": 0.0010249648313828226,
+    "activation_mean": 0.12875426154397188,
+    "gradient_mean": 0.00446373645234309
+  },
+  "12462": {
+    "name": "feature_12462",
+    "type": "causal",
+    "causal_score": 0.001021041653616632,
+    "activation_mean": 0.15226083708656843,
+    "gradient_mean": 0.0036425444545043185
+  },
+  "28287": {
+    "name": "feature_28287",
+    "type": "causal",
+    "causal_score": 0.0010158774409589144,
+    "activation_mean": 0.15238208672574532,
+    "gradient_mean": 0.0039201186555585694
+  },
+  "11620": {
+    "name": "feature_11620",
+    "type": "causal",
+    "causal_score": 0.0010137731126853959,
+    "activation_mean": 0.1395851569845603,
+    "gradient_mean": 0.0038909222521460213
+  },
+  "28348": {
+    "name": "feature_28348",
+    "type": "causal",
+    "causal_score": 0.0010136083463560392,
+    "activation_mean": 0.11963981727140553,
+    "gradient_mean": 0.004089600220995098
+  },
+  "2664": {
+    "name": "feature_2664",
+    "type": "causal",
+    "causal_score": 0.0010130393030791797,
+    "activation_mean": 0.13717501356203077,
+    "gradient_mean": 0.0037197600831131213
+  },
+  "14146": {
+    "name": "feature_14146",
+    "type": "causal",
+    "causal_score": 0.0010106581766714266,
+    "activation_mean": 0.1490606855424133,
+    "gradient_mean": 0.0034044902293422215
+  },
+  "18295": {
+    "name": "feature_18295",
+    "type": "causal",
+    "causal_score": 0.0010086283478222366,
+    "activation_mean": 0.12285091794061263,
+    "gradient_mean": 0.004179760434264879
+  },
+  "11939": {
+    "name": "feature_11939",
+    "type": "causal",
+    "causal_score": 0.0010080142520061351,
+    "activation_mean": 0.13471838569409658,
+    "gradient_mean": 0.0033956634538204545
+  },
+  "19927": {
+    "name": "feature_19927",
+    "type": "causal",
+    "causal_score": 0.001004927448470606,
+    "activation_mean": 0.16007444240578447,
+    "gradient_mean": 0.0030850705392395693
+  },
+  "14314": {
+    "name": "feature_14314",
+    "type": "causal",
+    "causal_score": 0.001004640548058474,
+    "activation_mean": 0.11251092599095139,
+    "gradient_mean": 0.004455460584005137
+  },
+  "292": {
+    "name": "feature_292",
+    "type": "causal",
+    "causal_score": 0.00100144738166696,
+    "activation_mean": 0.21824929436934162,
+    "gradient_mean": 0.0025441074483389505
+  },
+  "4830": {
+    "name": "feature_4830",
+    "type": "causal",
+    "causal_score": 0.0010006574749692656,
+    "activation_mean": 0.17003291129865067,
+    "gradient_mean": 0.0033358433327876124
+  },
+  "31025": {
+    "name": "feature_31025",
+    "type": "causal",
+    "causal_score": 0.0010000505897165913,
+    "activation_mean": 0.15310583239055414,
+    "gradient_mean": 0.004001053319566982
+  },
+  "11949": {
+    "name": "feature_11949",
+    "type": "causal",
+    "causal_score": 0.0009981008906005241,
+    "activation_mean": 0.11599983505746864,
+    "gradient_mean": 0.004046805032201061
+  },
+  "28263": {
+    "name": "feature_28263",
+    "type": "causal",
+    "causal_score": 0.0009969392444409435,
+    "activation_mean": 0.15804809474019246,
+    "gradient_mean": 0.003091783043326193
+  },
+  "7813": {
+    "name": "feature_7813",
+    "type": "causal",
+    "causal_score": 0.0009953191894252946,
+    "activation_mean": 0.12173900383695559,
+    "gradient_mean": 0.00346469366849748
+  },
+  "25148": {
+    "name": "feature_25148",
+    "type": "causal",
+    "causal_score": 0.0009932076776824176,
+    "activation_mean": 0.1423006708333233,
+    "gradient_mean": 0.003282209972539242
+  },
+  "18367": {
+    "name": "feature_18367",
+    "type": "causal",
+    "causal_score": 0.0009921232310695133,
+    "activation_mean": 0.12665741477300327,
+    "gradient_mean": 0.0038373876380150126
+  },
+  "6303": {
+    "name": "feature_6303",
+    "type": "causal",
+    "causal_score": 0.0009912257472635844,
+    "activation_mean": 0.17065770384282908,
+    "gradient_mean": 0.0030046877170177965
+  },
+  "20693": {
+    "name": "feature_20693",
+    "type": "causal",
+    "causal_score": 0.0009910895584626337,
+    "activation_mean": 0.14189385753148864,
+    "gradient_mean": 0.00392086869352276
+  },
+  "13358": {
+    "name": "feature_13358",
+    "type": "causal",
+    "causal_score": 0.0009895138424788768,
+    "activation_mean": 0.14551410068146914,
+    "gradient_mean": 0.0032434805705533654
+  },
+  "13989": {
+    "name": "feature_13989",
+    "type": "causal",
+    "causal_score": 0.0009891766273406005,
+    "activation_mean": 0.12569459610820696,
+    "gradient_mean": 0.004152030839585664
+  },
+  "2238": {
+    "name": "feature_2238",
+    "type": "causal",
+    "causal_score": 0.0009887505470226729,
+    "activation_mean": 0.13216211159638247,
+    "gradient_mean": 0.00408798150576018
+  },
+  "31922": {
+    "name": "feature_31922",
+    "type": "causal",
+    "causal_score": 0.0009882425373050699,
+    "activation_mean": 0.15061270085728903,
+    "gradient_mean": 0.0030836885003253474
+  },
+  "2115": {
+    "name": "feature_2115",
+    "type": "causal",
+    "causal_score": 0.000986955580042441,
+    "activation_mean": 0.12201469388117342,
+    "gradient_mean": 0.003627698558338754
+  },
+  "7078": {
+    "name": "feature_7078",
+    "type": "causal",
+    "causal_score": 0.0009849273026443389,
+    "activation_mean": 0.22862279013621792,
+    "gradient_mean": 0.0030235861313908296
+  },
+  "4160": {
+    "name": "feature_4160",
+    "type": "causal",
+    "causal_score": 0.000982973917654703,
+    "activation_mean": 0.14559960662840418,
+    "gradient_mean": 0.003428939866160302
+  },
+  "3862": {
+    "name": "feature_3862",
+    "type": "causal",
+    "causal_score": 0.0009804400589475267,
+    "activation_mean": 0.1474210665815908,
+    "gradient_mean": 0.0034269640917694902
+  },
+  "5557": {
+    "name": "feature_5557",
+    "type": "causal",
+    "causal_score": 0.000977771026064217,
+    "activation_mean": 0.1530204969411656,
+    "gradient_mean": 0.003307488029253333
+  },
+  "5563": {
+    "name": "feature_5563",
+    "type": "causal",
+    "causal_score": 0.0009764037768554736,
+    "activation_mean": 0.15366012968041662,
+    "gradient_mean": 0.0030805311549517095
+  },
+  "8450": {
+    "name": "feature_8450",
+    "type": "causal",
+    "causal_score": 0.0009757481310629985,
+    "activation_mean": 0.16043964196426916,
+    "gradient_mean": 0.003034049438126445
+  },
+  "27929": {
+    "name": "feature_27929",
+    "type": "causal",
+    "causal_score": 0.0009678048203117663,
+    "activation_mean": 0.1426990455124092,
+    "gradient_mean": 0.003443033091907135
+  },
+  "10330": {
+    "name": "feature_10330",
+    "type": "causal",
+    "causal_score": 0.0009677534092003832,
+    "activation_mean": 0.14337418992670112,
+    "gradient_mean": 0.0034751010282785275
+  },
+  "28639": {
+    "name": "feature_28639",
+    "type": "causal",
+    "causal_score": 0.0009666184796272311,
+    "activation_mean": 0.14082731015559416,
+    "gradient_mean": 0.002985189956211185
+  },
+  "26064": {
+    "name": "feature_26064",
+    "type": "causal",
+    "causal_score": 0.0009647313536037419,
+    "activation_mean": 0.16720671915713414,
+    "gradient_mean": 0.003016773582300451
+  },
+  "26007": {
+    "name": "feature_26007",
+    "type": "causal",
+    "causal_score": 0.0009627508223104614,
+    "activation_mean": 0.1521758752319106,
+    "gradient_mean": 0.003223191679983468
+  },
+  "18264": {
+    "name": "feature_18264",
+    "type": "causal",
+    "causal_score": 0.0009622199243682803,
+    "activation_mean": 0.15127985410880063,
+    "gradient_mean": 0.003452351245361432
+  },
+  "24963": {
+    "name": "feature_24963",
+    "type": "causal",
+    "causal_score": 0.0009601465092503943,
+    "activation_mean": 0.1733242793173669,
+    "gradient_mean": 0.003117951824168695
+  },
+  "20521": {
+    "name": "feature_20521",
+    "type": "causal",
+    "causal_score": 0.000955542072246018,
+    "activation_mean": 0.1346441268538327,
+    "gradient_mean": 0.0035544245397739005
+  },
+  "9241": {
+    "name": "feature_9241",
+    "type": "causal",
+    "causal_score": 0.0009469340286528357,
+    "activation_mean": 0.2071748268246574,
+    "gradient_mean": 0.0028465320232452223
+  },
+  "2288": {
+    "name": "feature_2288",
+    "type": "causal",
+    "causal_score": 0.000945533237278557,
+    "activation_mean": 0.14864350153044803,
+    "gradient_mean": 0.0029226939843977123
+  },
+  "13506": {
+    "name": "feature_13506",
+    "type": "causal",
+    "causal_score": 0.0009414857651401003,
+    "activation_mean": 0.14558637135916788,
+    "gradient_mean": 0.0032020378157042746
+  },
+  "1656": {
+    "name": "feature_1656",
+    "type": "causal",
+    "causal_score": 0.0009410330924486695,
+    "activation_mean": 0.1541821063538016,
+    "gradient_mean": 0.003267121034133665
+  },
+  "20111": {
+    "name": "feature_20111",
+    "type": "causal",
+    "causal_score": 0.0009374439746559087,
+    "activation_mean": 0.15488361599705683,
+    "gradient_mean": 0.002808026869930608
+  },
+  "16425": {
+    "name": "feature_16425",
+    "type": "causal",
+    "causal_score": 0.0009357212420661464,
+    "activation_mean": 0.20611173056534687,
+    "gradient_mean": 0.0034036499920805656
+  },
+  "9920": {
+    "name": "feature_9920",
+    "type": "causal",
+    "causal_score": 0.0009336211242674104,
+    "activation_mean": 0.1757985601156223,
+    "gradient_mean": 0.0031853531254081844
+  },
+  "10398": {
+    "name": "feature_10398",
+    "type": "causal",
+    "causal_score": 0.0009323700355435812,
+    "activation_mean": 0.18399654112383246,
+    "gradient_mean": 0.0032806009578688036
+  },
+  "9048": {
+    "name": "feature_9048",
+    "type": "causal",
+    "causal_score": 0.0009316437942803632,
+    "activation_mean": 0.14378869080072,
+    "gradient_mean": 0.002900671599829146
+  },
+  "4060": {
+    "name": "feature_4060",
+    "type": "causal",
+    "causal_score": 0.0009315288528333452,
+    "activation_mean": 0.16893072248279895,
+    "gradient_mean": 0.0030185195729720785
+  },
+  "237": {
+    "name": "feature_237",
+    "type": "causal",
+    "causal_score": 0.0009308175005527319,
+    "activation_mean": 0.15089774659173671,
+    "gradient_mean": 0.0031268803539894526
+  },
+  "18399": {
+    "name": "feature_18399",
+    "type": "causal",
+    "causal_score": 0.0009283422876127523,
+    "activation_mean": 0.14632795456992953,
+    "gradient_mean": 0.00335725971366983
+  },
+  "27042": {
+    "name": "feature_27042",
+    "type": "causal",
+    "causal_score": 0.0009281776587548625,
+    "activation_mean": 0.13824817751999346,
+    "gradient_mean": 0.0031070619979060334
+  },
+  "6409": {
+    "name": "feature_6409",
+    "type": "causal",
+    "causal_score": 0.000926616704515985,
+    "activation_mean": 0.12523682649117035,
+    "gradient_mean": 0.00317483472791608
+  },
+  "28417": {
+    "name": "feature_28417",
+    "type": "causal",
+    "causal_score": 0.0009251273320407986,
+    "activation_mean": 0.12909133018583863,
+    "gradient_mean": 0.003377125584689269
+  },
+  "552": {
+    "name": "feature_552",
+    "type": "causal",
+    "causal_score": 0.0009243768434015516,
+    "activation_mean": 0.14743841153728526,
+    "gradient_mean": 0.003305964591728813
+  },
+  "14984": {
+    "name": "feature_14984",
+    "type": "causal",
+    "causal_score": 0.000923372793055789,
+    "activation_mean": 0.1759178476936551,
+    "gradient_mean": 0.0031218775230700767
+  }
+}

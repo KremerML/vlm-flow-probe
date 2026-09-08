@@ -77,6 +77,7 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 10:05 | `Image->Question` sweep complete (n = 7,186). The n = 1,546 span decision holds unchanged: same ranking, layers 11 (+1.512) and 14 (+1.313) dominating, 13 inhibitory (-0.203) | job 26457768 |
 | 2026-09-08 10:52 | **Replace-mode pass-through gate passes**: worst span drop +0.00777 against a 0.02 threshold. The run stays in the published replace-mode protocol | job 26464470 |
 | 2026-09-08 11:00 | Full matrix submitted (`--phases all`, includes the isolation phase), 32/32 per-layer chains complete | job 26465465 |
+| 2026-09-08 13:00 | **Matrix complete** (53 conditions, ~2 h); redundancy analysis, decomposition, single-layer A-vs-K table and six figures generated; summaries synced back | job 26465465, `analysis/multilayer_summary.md`, `output/paper_figures/llava16/` |
 
 ### Bring-up numbers (32 validation items, RTX 4090)
 
@@ -180,7 +181,109 @@ At n = 7,186 the `Image->Question` ranking is unchanged from n = 1,546: 0 (+1.94
 14 (+1.313), 19 (+0.639), 17 (+0.510), 10 (+0.464), with 13 inhibitory (-0.203). Span 10-14
 stands, as the Gemma decision did.
 
-## Open items
+## Results
 
-- The matrix itself: whether single-layer ablation saturates against the knockout ceiling, what
-  the same budget spread over the span recovers, and the pooled `R = A/K`.
+53 conditions, 256 evaluation items, replace mode, span 10-14.
+Artifacts: `output/experiments/llava16_multilayer_clevr_lite_l10-14_attn_out_question/analysis/`
+(`multilayer_summary.json`, `.md`), `output/experiments/llava16_single_layer_ak.json`,
+`output/experiments/llava16_metric_decomposition.json`, figures under
+`output/paper_figures/llava16/`.
+
+### The headline: recovery is much higher than on LLaVA-1.5, and not constant
+
+**R = A/K over the full span 10-14 is 93.6% (95% CI 89.0-98.5%)**, from A = 3.6422 and
+K = 3.8899. The published LLaVA-1.5 figure is 72.6%.
+
+| kind | span | size | A | K | R | 95% CI |
+|---|---|---|---|---|---|---|
+| nested | `{14}` | 1 | 1.7021 | 1.2329 | 138.1% | 131.3 - 145.4 |
+| nested | `{13,14}` | 2 | 2.1778 | 1.1197 | 194.5% | 185.1 - 205.4 |
+| nested | `{12,13,14}` | 3 | 2.8235 | 1.5376 | 183.6% | 175.6 - 192.4 |
+| nested | `{11-14}` | 4 | 3.3639 | 3.5895 | 93.7% | 89.1 - 98.7 |
+| nested | `{10-14}` | 5 | 3.6422 | 3.8899 | 93.6% | 89.0 - 98.5 |
+| non-nested | `{10,11,12}` | 3 | 1.9796 | 3.4513 | 57.4% | 53.5 - 61.5 |
+| non-nested | `{10,12,14}` | 3 | 2.4192 | 2.0060 | 120.6% | 116.1 - 125.3 |
+| sensitivity | `{10,11,12,14}` | 4 | 3.1682 | 3.6939 | 85.8% | 81.2 - 90.6 |
+
+R is **not** constant across spans -- no value lies inside every interval -- and it trends with
+span size at -0.19 per layer (95% CI -0.212 to -0.169, excluding zero). At short spans ablation
+*exceeds* the knockout ceiling (up to 194.5%); by four and five layers it sits just below it.
+The LLaVA-1.5 per-span ratios are also not individually constant (65-88%), so what changes with
+the vision front-end is the level, not the fact of dispersion.
+
+A reading consistent with the numbers, though this run does not test it directly: a single-layer
+knockout is easy for the model to route around -- it can re-read the image at any other layer --
+so K is small at short spans, while the ablation removes content that later layers cannot restore
+by re-reading. Severing five layers at once is much harder to route around, and there the two
+interventions come back into line.
+
+### The features do act within the pathway
+
+The isolation phase severs `Image->Question` at *every* layer and then ablates on top:
+
+| condition | margin drop |
+|---|---|
+| `full_knockout_L0-31` (the no-image floor) | +6.9215 |
+| `isolated_joint_L10-14` (ablation on top of it) | +6.9508 |
+| `isolated_ablate_L11` | +6.6058 |
+
+With no image information reaching the text positions anywhere in the stack, ablating the span's
+1,000 selected features moves the margin by +0.03 -- and single-layer isolation moves it the wrong
+way. The features have nothing left to remove once the pathway is cut, which is what "acting
+within the pathway" means. This is the precondition Gemma failed, and it holds here.
+
+### Spreading still beats concentrating, by 2x rather than 3x
+
+Same 200-feature budget: spread 40 per layer over 10-14 gives +1.3590; concentrated at layer 11
+gives +0.6949. A ratio of 1.96, against roughly 3x on LLaVA-1.5. Neither the ablation nor the
+knockout curve saturates over spans of 1-5 layers (both fits collapse to lines, slopes 1.766 and
+0.762 per layer), so the saturation claim cannot be evaluated on this range; what is identified is
+the slope ratio, 2.318.
+
+### The redundancy signature replicates
+
+Leave-one-out marginal contributions sit far below the standalone single-layer effects -- layer 14
+contributes +0.944 in context against +1.702 standalone (0.555), layer 11 +0.596 against +0.695
+(0.858). The rest of the span already carries most of what any one layer contributes.
+
+### Both arms move the margin the same way
+
+Every effect decomposes into true-option loss and false-option rise. On this model both arms are
+dominated by the false-option rise, with the true option unchanged or slightly improved:
+
+| condition | margin | true drop | false rise |
+|---|---|---|---|
+| `joint_L10-14` (ablation) | +3.642 | -0.364 | +4.006 |
+| `span_knockout_L10-14` | +3.890 | +0.303 | +3.587 |
+| `nested_L14` (ablation) | +1.702 | -0.371 | +2.073 |
+| `knockout_L14` | +1.233 | -0.167 | +1.400 |
+| `full_knockout_L0-31` | +6.922 | -1.038 | +7.959 |
+
+That the *knockout* behaves this way too -- including with the image entirely severed -- makes it a
+property of the metric on this task, not a symptom of the ablation. A and K are therefore
+measuring the same kind of change, which is what the ratio requires. (Gemma's problem was
+different: there the margin was saturated, true near 0 nats and false near -33.)
+
+### Single layers, same 256 samples
+
+| layer | 10 | 11 | 12 | 13 | 14 |
+|---|---|---|---|---|---|
+| A | 0.389 | 0.695 | 0.480 | 0.751 | 1.702 |
+| K | 0.448 | 1.433 | 0.217 | -0.183 | 1.233 |
+| A/K | 0.867 | 0.485 | 2.214 | -- | 1.380 |
+
+Layer 13's knockout is inhibitory, so its ratio is undefined; the span retains it because the
+paper's rule does.
+
+## What this means for the calibration
+
+The three preconditions all hold: the dictionaries fit the site (EV >= 0.9989), the ablation acts
+within the pathway (isolation), and the margin is unsaturated (baseline 7.63, log P(true) -9.5).
+The qualitative account survives too -- strong redundancy, spreading beats concentrating, the same
+span, the same top-3 layers.
+
+What does not transfer is the number. Recovery at the full span is 93.6% where LLaVA-1.5 gives
+72.6%, and at short spans ablation exceeds the knockout ceiling outright. Holding the language
+model, the prompt, the data and the recipe fixed and changing only the vision front-end moves the
+calibration by twenty points. Whatever R measures, it is not a property of the language model
+alone.

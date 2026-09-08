@@ -1,0 +1,158 @@
+model:
+  adapter: hf-llava-next
+  name: llava-hf/llava-v1.6-vicuna-7b-hf
+  tag: llava16
+  dtype: float16
+  target_layer: 6
+  activation_site: attn_out
+  adapter_options:
+    pad_to_square: false
+    prompt_template: vicuna_v1
+    cache_image_features: true
+sae:
+  n_features: 32768
+  l1_coeff: 0.0005
+training:
+  batch_size: 256
+  learning_rate: 0.0002
+  epochs: 10
+  seed: 42
+  dtype: float32
+  position_type: question
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+experiment:
+  output_dir: null
+  output_base: output/experiments
+  name: llava16_sae_clevr_lite_layer6_attn_out_question
+  use_timestamp: false
+  require_model_tag: true
+dataset:
+  format: clevr_lite
+  data_dir: datasets/clevr_lite
+  split: train
+  filter_held_out: null
+feature_identification:
+  discrimination_threshold: 2.0
+  min_activation: 0.1
+  top_k: 200
+  min_diff: 0.0
+  aggregation: mean
+  selection_method: ratio
+  candidate_pool_k: 200
+  causal_scores_path: null
+  position_type: question
+  correctness_metric: option_logprob
+  logprob_normalize: true
+  batch_size: 256
+  error_term: false
+  fallback:
+    discrimination_threshold: 1.1
+    min_activation: 0.0
+    min_diff: 0.0
+ablation:
+  n_random_features: 200
+  n_bootstrap: 1000
+  n_random_sets: 15
+  random_sampling: matched
+  position_type: question
+  mode: replace
+  delta_scale: 1.0
+  operation: zero
+  operation_scale: 1.0
+random_control:
+  n_random_sets: 15
+  sampling: matched
+  seed: 42
+  matched_metric: activation_mean
+  strict_matching: true
+evaluation:
+  significance_level: 0.05
+  primary_metric: forced_choice_margin
+  logprob_normalize: true
+sae_reuse:
+  recon_threshold: 0.1
+  kl_threshold: 0.5
+  allow_missing_stats: true
+  sample_size: 256
+  search_paths:
+  - output/experiments
+knockout:
+  flows:
+  - Image->Question
+  - Image->Last
+  window: 1
+  filter_correct: true
+  normalize_logprob: true
+  max_samples: null
+  top_k_layers: 5
+  batch_size: 1
+  num_workers: 2
+  output_subdir: knockout
+multilayer:
+  layers:
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  excluded_layers:
+  - 0
+  encode_mode: live
+  encode_positions_only: true
+  features_per_layer: 200
+  sae_dtype: float32
+  sae_paths: {}
+  catalog_paths: {}
+  stats_paths: {}
+conditions:
+  gate: true
+  primary: true
+  a0_regression_layer: 11
+  nested:
+  - - 14
+  - - 13
+    - 14
+  - - 12
+    - 13
+    - 14
+  - - 11
+    - 12
+    - 13
+    - 14
+  - - 10
+    - 11
+    - 12
+    - 13
+    - 14
+  non_nested:
+  - - 10
+    - 12
+    - 14
+  - - 10
+    - 11
+    - 12
+  leave_one_out: true
+  span_knockout: true
+  budget_matched:
+    spread_per_layer: 40
+    concentrated_layer: 11
+    concentrated_k:
+    - 40
+    - 100
+    - 200
+    - 400
+    - 800
+  downstream_knockout:
+    anchor_layers:
+    - 11
+    - 14
+    downstream_to: 31
+  sensitivity_span:
+  - 10
+  - 11
+  - 12
+  - 14
+frozen: false

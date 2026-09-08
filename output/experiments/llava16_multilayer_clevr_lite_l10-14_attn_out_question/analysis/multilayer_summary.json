@@ -1,0 +1,562 @@
+{
+  "experiment_dir": "output/experiments/llava16_multilayer_clevr_lite_l10-14_attn_out_question",
+  "span": [
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "layer_source": "output/experiments/llava16_multilayer_clevr_lite_l10-14_attn_out_question/provenance.json",
+  "n_layers": 32,
+  "n_conditions": 53,
+  "redundancy_index": {
+    "ablation_condition": "joint_L10-14",
+    "knockout_condition": "span_knockout_L10-14",
+    "ablation_mean": 3.64221335546875,
+    "knockout_mean": 3.8898833359375002,
+    "n_samples": 256,
+    "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+    "status": "ok",
+    "ratio": 0.9363297150378266,
+    "ci_low": 0.8903399487249312,
+    "ci_high": 0.9850115007949161
+  },
+  "single_layer_ratios": {
+    "10": {
+      "status": "missing_condition",
+      "depth": 0.3125
+    },
+    "11": {
+      "status": "missing_condition",
+      "depth": 0.34375
+    },
+    "12": {
+      "status": "missing_condition",
+      "depth": 0.375
+    },
+    "13": {
+      "status": "missing_condition",
+      "depth": 0.40625
+    },
+    "14": {
+      "ablation_condition": "nested_L14",
+      "knockout_condition": "knockout_L14",
+      "ablation_mean": 1.70208795703125,
+      "knockout_mean": 1.23294202734375,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 1.3805093177805188,
+      "ci_low": 1.3132852770403998,
+      "ci_high": 1.4542113292369057,
+      "depth": 0.4375
+    }
+  },
+  "redundancy_by_span": [
+    {
+      "kind": "nested",
+      "label": "{14}",
+      "span_size": 1,
+      "layers": [
+        14
+      ],
+      "mean_depth": 0.4375,
+      "ablation_condition": "nested_L14",
+      "knockout_condition": "nested_knockout_L14",
+      "ablation_mean": 1.70208795703125,
+      "knockout_mean": 1.23294202734375,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 1.3805093177805188,
+      "ci_low": 1.3132852770403998,
+      "ci_high": 1.4542113292369057
+    },
+    {
+      "kind": "nested",
+      "label": "{13,14}",
+      "span_size": 2,
+      "layers": [
+        13,
+        14
+      ],
+      "mean_depth": 0.421875,
+      "ablation_condition": "nested_L13-14",
+      "knockout_condition": "nested_knockout_L13-14",
+      "ablation_mean": 2.1777644765625,
+      "knockout_mean": 1.1196757265625,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 1.944995702682975,
+      "ci_low": 1.851303040549935,
+      "ci_high": 2.0544033797604646
+    },
+    {
+      "kind": "nested",
+      "label": "{12,13,14}",
+      "span_size": 3,
+      "layers": [
+        12,
+        13,
+        14
+      ],
+      "mean_depth": 0.40625,
+      "ablation_condition": "nested_L12-14",
+      "knockout_condition": "nested_knockout_L12-14",
+      "ablation_mean": 2.82354747265625,
+      "knockout_mean": 1.5375847539062502,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 1.836352412758385,
+      "ci_low": 1.755877532477614,
+      "ci_high": 1.9241581265287298
+    },
+    {
+      "kind": "nested",
+      "label": "{11-14}",
+      "span_size": 4,
+      "layers": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "mean_depth": 0.390625,
+      "ablation_condition": "nested_L11-14",
+      "knockout_condition": "nested_knockout_L11-14",
+      "ablation_mean": 3.36390809765625,
+      "knockout_mean": 3.58948249609375,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 0.9371568467925444,
+      "ci_low": 0.8910097231734659,
+      "ci_high": 0.9865768336834203
+    },
+    {
+      "kind": "nested",
+      "label": "{10-14}",
+      "span_size": 5,
+      "layers": [
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "mean_depth": 0.375,
+      "ablation_condition": "joint_L10-14",
+      "knockout_condition": "span_knockout_L10-14",
+      "ablation_mean": 3.64221335546875,
+      "knockout_mean": 3.8898833359375002,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 0.9363297150378266,
+      "ci_low": 0.8903399487249312,
+      "ci_high": 0.9850115007949161
+    },
+    {
+      "kind": "non-nested",
+      "label": "{10,11,12}",
+      "span_size": 3,
+      "layers": [
+        10,
+        11,
+        12
+      ],
+      "mean_depth": 0.34375,
+      "ablation_condition": "nonnested_L10-12",
+      "knockout_condition": "nonnested_knockout_L10-12",
+      "ablation_mean": 1.97957198828125,
+      "knockout_mean": 3.4513450468749998,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 0.5735653669498046,
+      "ci_low": 0.5347705053560571,
+      "ci_high": 0.6147447424200762
+    },
+    {
+      "kind": "non-nested",
+      "label": "{10,12,14}",
+      "span_size": 3,
+      "layers": [
+        10,
+        12,
+        14
+      ],
+      "mean_depth": 0.375,
+      "ablation_condition": "nonnested_L10,12,14",
+      "knockout_condition": "nonnested_knockout_L10,12,14",
+      "ablation_mean": 2.41917557421875,
+      "knockout_mean": 2.00597033984375,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 1.2059877088746913,
+      "ci_low": 1.1606540530574956,
+      "ci_high": 1.2527900462138692
+    },
+    {
+      "kind": "sensitivity",
+      "label": "{10,11,12,14}",
+      "span_size": 4,
+      "layers": [
+        10,
+        11,
+        12,
+        14
+      ],
+      "mean_depth": 0.3671875,
+      "ablation_condition": "sensitivity_joint_L10,11,12,14",
+      "knockout_condition": "sensitivity_knockout_L10,11,12,14",
+      "ablation_mean": 3.16824636328125,
+      "knockout_mean": 3.6938686640625003,
+      "n_samples": 256,
+      "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+      "status": "ok",
+      "ratio": 0.8577041176653061,
+      "ci_low": 0.8120933833374837,
+      "ci_high": 0.9059675794522687
+    }
+  ],
+  "redundancy_trend": {
+    "status": "ok",
+    "seed": 42,
+    "n_bootstrap": 10000,
+    "n_samples": 256,
+    "question_ids_sha1": "a74b46cc150aecbe315ebe2cdf7cbe02d1fee24f",
+    "per_span": [
+      {
+        "label": "{14}",
+        "span_size": 1,
+        "ratio": 1.3805093177805188,
+        "ci_low": 1.3132852770403998,
+        "ci_high": 1.4542113292369057
+      },
+      {
+        "label": "{13,14}",
+        "span_size": 2,
+        "ratio": 1.944995702682975,
+        "ci_low": 1.851303040549935,
+        "ci_high": 2.0544033797604646
+      },
+      {
+        "label": "{12,13,14}",
+        "span_size": 3,
+        "ratio": 1.836352412758385,
+        "ci_low": 1.755877532477614,
+        "ci_high": 1.9241581265287298
+      },
+      {
+        "label": "{11-14}",
+        "span_size": 4,
+        "ratio": 0.9371568467925444,
+        "ci_low": 0.8910097231734659,
+        "ci_high": 0.9865768336834203
+      },
+      {
+        "label": "{10-14}",
+        "span_size": 5,
+        "ratio": 0.9363297150378266,
+        "ci_low": 0.8903399487249312,
+        "ci_high": 0.9850115007949161
+      }
+    ],
+    "slope_per_layer": -0.1896198061375815,
+    "slope_ci_low": -0.2119576935842988,
+    "slope_ci_high": -0.16925486597409561,
+    "slope_excludes_zero": true,
+    "pooled_ratio": 1.20580843085582,
+    "pooled_ci_low": 1.156979663648018,
+    "pooled_ci_high": 1.2573067420671808,
+    "spread": 1.0086659876451485,
+    "spread_ci_low": 0.9249480985482297,
+    "spread_ci_high": 1.1093371386911695,
+    "common_value": false,
+    "highest_ci_low": 1.851303040549935,
+    "lowest_ci_high": 0.9850115007949161,
+    "interpretation": "Pooled recovery over the nested spans is 120.6% (95% CI 115.7% - 125.7%). The per-span ratios run 93.6% to 194.5% with NO value inside every interval, so R is not constant across spans and must not be reported as such. R trends with span size at -0.1896 per layer (95% CI -0.2120 - -0.1693), which excludes zero."
+  },
+  "saturation": {
+    "ablation": [
+      {
+        "span_size": 1,
+        "margin_drop": 1.702087959041819
+      },
+      {
+        "span_size": 2,
+        "margin_drop": 2.1777644746471196
+      },
+      {
+        "span_size": 3,
+        "margin_drop": 2.8235474633984268
+      },
+      {
+        "span_size": 4,
+        "margin_drop": 3.3639080978464335
+      },
+      {
+        "span_size": 5,
+        "margin_drop": 3.6422133788000792
+      }
+    ],
+    "knockout": [
+      {
+        "span_size": 1,
+        "margin_drop": 1.2329420219175518
+      },
+      {
+        "span_size": 2,
+        "margin_drop": 1.1196757247671485
+      },
+      {
+        "span_size": 3,
+        "margin_drop": 1.5375847599934787
+      },
+      {
+        "span_size": 4,
+        "margin_drop": 3.589482468785718
+      },
+      {
+        "span_size": 5,
+        "margin_drop": 3.8898832874838263
+      }
+    ],
+    "ablation_fit": {
+      "a": 4.0211884807894105,
+      "b": 0.43905409900041326,
+      "degenerate": false,
+      "initial_slope": 1.7655192853438353
+    },
+    "knockout_fit": {
+      "a": 17327.959377233907,
+      "b": 4.396049830908538e-05,
+      "degenerate": true,
+      "initial_slope": 0.7617457289027914
+    },
+    "b_minus_d": 0.4390101385021042,
+    "degenerate": true,
+    "slope_ratio": 2.3177278432356507,
+    "interpretation": "NEITHER curve saturates over this range -- both fits collapsed to straight lines (ablation 1.766/layer, knockout 0.762/layer), so b and d are not identified and b - d carries no information. What is identified is the slope ratio, 2.318: over spans of 1-5 layers the two curves grow in a fixed proportion, with no sign of the ablation curve turning over sooner. Wider spans would be needed to see saturation at all. This is a statement about the two slopes and NOT about R span by span -- see redundancy_by_span, where the ratios disperse beyond their own intervals."
+  },
+  "interaction": {
+    "span": [
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "ablation_status": "incomplete",
+    "missing_single_layer_ablations": [
+      10,
+      12,
+      13
+    ],
+    "knockout_status": "ok",
+    "span_knockout": 3.8898832874838263,
+    "sum_single_knockout": 3.1476663411594927,
+    "rho_knockout": 1.2357991177841696
+  },
+  "leave_one_out": [
+    {
+      "layer": 10,
+      "joint": 3.6422133788000792,
+      "without_layer": 3.3639080978464335,
+      "marginal": 0.2783052809536457,
+      "standalone": null,
+      "marginal_over_standalone": null
+    },
+    {
+      "layer": 11,
+      "joint": 3.6422133788000792,
+      "without_layer": 3.0463259667158127,
+      "marginal": 0.5958874120842665,
+      "standalone": 0.6949030247051269,
+      "marginal_over_standalone": 0.8575116108281781
+    },
+    {
+      "layer": 12,
+      "joint": 3.6422133788000792,
+      "without_layer": 3.164430669043213,
+      "marginal": 0.4777827097568661,
+      "standalone": null,
+      "marginal_over_standalone": null
+    },
+    {
+      "layer": 13,
+      "joint": 3.6422133788000792,
+      "without_layer": 3.168246353045106,
+      "marginal": 0.4739670257549733,
+      "standalone": null,
+      "marginal_over_standalone": null
+    },
+    {
+      "layer": 14,
+      "joint": 3.6422133788000792,
+      "without_layer": 2.6982293392065912,
+      "marginal": 0.943984039593488,
+      "standalone": 1.702087959041819,
+      "marginal_over_standalone": 0.5546035588694832
+    }
+  ],
+  "significance": [
+    {
+      "condition_id": "budget_spread40x5",
+      "binding": 1.3589788426179439,
+      "random_mean": 0.446655401494354,
+      "random_std": 0.0,
+      "z_score": null,
+      "z_standard_error": null,
+      "n_control_sets": 1,
+      "empirical_p": 0.5,
+      "empirical_p_floor": 0.5,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 9.620522081532451e-32
+    },
+    {
+      "condition_id": "joint_L10-14",
+      "binding": 3.6422133788000792,
+      "random_mean": 0.501153930152456,
+      "random_std": 0.04209772801936167,
+      "z_score": 74.61351470566252,
+      "z_standard_error": 14.10062888254598,
+      "n_control_sets": 15,
+      "empirical_p": 0.0625,
+      "empirical_p_floor": 0.0625,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 1.0341469655637187e-43
+    },
+    {
+      "condition_id": "nested_L11-14",
+      "binding": 3.3639080978464335,
+      "random_mean": 0.2716961994301528,
+      "random_std": 0.0,
+      "z_score": null,
+      "z_standard_error": null,
+      "n_control_sets": 1,
+      "empirical_p": 0.5,
+      "empirical_p_floor": 0.5,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 9.637519323789954e-44
+    },
+    {
+      "condition_id": "nested_L12-14",
+      "binding": 2.8235474633984268,
+      "random_mean": 0.29101571370847523,
+      "random_std": 0.0,
+      "z_score": null,
+      "z_standard_error": null,
+      "n_control_sets": 1,
+      "empirical_p": 0.5,
+      "empirical_p_floor": 0.5,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 1.4199838799305066e-43
+    },
+    {
+      "condition_id": "nested_L13-14",
+      "binding": 2.1777644746471196,
+      "random_mean": 0.1493081257212907,
+      "random_std": 0.0,
+      "z_score": null,
+      "z_standard_error": null,
+      "n_control_sets": 1,
+      "empirical_p": 0.5,
+      "empirical_p_floor": 0.5,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 1.1097127542535901e-43
+    },
+    {
+      "condition_id": "nested_L14",
+      "binding": 1.702087959041819,
+      "random_mean": 0.00528051215223968,
+      "random_std": 0.0,
+      "z_score": null,
+      "z_standard_error": null,
+      "n_control_sets": 1,
+      "empirical_p": 0.5,
+      "empirical_p_floor": 0.5,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 9.863823479661404e-44
+    },
+    {
+      "condition_id": "nonnested_L10,12,14",
+      "binding": 2.419175579212606,
+      "random_mean": 0.27134841517545283,
+      "random_std": 0.0,
+      "z_score": null,
+      "z_standard_error": null,
+      "n_control_sets": 1,
+      "empirical_p": 0.5,
+      "empirical_p_floor": 0.5,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 1.85912771307158e-43
+    },
+    {
+      "condition_id": "nonnested_L10-12",
+      "binding": 1.9795719704125077,
+      "random_mean": 0.15060279122553766,
+      "random_std": 0.0,
+      "z_score": null,
+      "z_standard_error": null,
+      "n_control_sets": 1,
+      "empirical_p": 0.5,
+      "empirical_p_floor": 0.5,
+      "control_regime": {
+        "10": "matched_activation_mean",
+        "11": "matched_activation_mean",
+        "12": "matched_activation_mean",
+        "13": "matched_activation_mean",
+        "14": "matched_activation_mean"
+      },
+      "wilcoxon_p": 1.3232835739796173e-43
+    }
+  ]
+}
