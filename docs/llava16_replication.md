@@ -228,9 +228,12 @@ The isolation phase severs `Image->Question` at *every* layer and then ablates o
 | `isolated_ablate_L11` | +6.6058 |
 
 With no image information reaching the text positions anywhere in the stack, ablating the span's
-1,000 selected features moves the margin by +0.03 -- and single-layer isolation moves it the wrong
-way. The features have nothing left to remove once the pathway is cut, which is what "acting
-within the pathway" means. This is the precondition Gemma failed, and it holds here.
+1,000 selected features moves the margin by +0.03, and single-layer isolation moves it the wrong
+way. What the ablation still does in that state is lower *both* options together -- the joint
+condition takes the true option from -8.70 to -12.76 and the false from -8.57 to -12.60 -- a
+general loss of confidence rather than a separation of the two, which is why the margin does not
+move. The features have nothing left to take *from the margin* once the pathway is cut, which is
+what the calibration requires. This is the precondition Gemma failed, and it holds here.
 
 ### Spreading still beats concentrating, by 2x rather than 3x
 
@@ -274,6 +277,16 @@ different: there the margin was saturated, true near 0 nats and false near -33.)
 
 Layer 13's knockout is inhibitory, so its ratio is undefined; the span retains it because the
 paper's rule does.
+
+## Paper addition
+
+`cross-modal-information-flow-in-MLLM/overleaf/llava16_addition.tex` (committed there as
+`a73b9f4`), with the six figures as PNG and PDF under `overleaf/paper_figures/` and the
+LLaVA-1.5 and LLaVA-NeXT entries appended to `refs.bib`. It compiles standalone (8 pages, no
+errors); the undefined references that remain are the cross-links into `main_final.tex` and the
+Gemma appendix, which resolve when it is `\input`. Suggested abstract, Limitations and
+Availability edits are comments at the end of the file -- the Limitations sentence is a combined
+replacement that also carries the Gemma addition's suggestion, since both edit the same sentence.
 
 ## What this means for the calibration
 
