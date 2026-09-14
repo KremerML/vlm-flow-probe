@@ -73,7 +73,7 @@ changed to paper over it -- doing so would break the equivalence gate and the pu
 | 2026-09-08 03:45 | All 32 per-layer chains (train -> identify -> ablate) queued with `--dependency=afterok:26457770`, span layers and layer 0 first, so they start when the collection succeeds and not before | jobs 26459245-26459276 |
 | 2026-09-08 07:40 | **Collection complete** (6 h 08 m): 32 layers x 4,711,800 rows x 4096, 1.2 TB on scratch. Per-layer chains released by the dependency and running | job 26457770, `output/activations/llava16_clevr_lite_question/collection_info.json` |
 | 2026-09-08 10:00 | `Image->Last` sweep complete (n = 7,186 correctly answered of 7,790, 92.2% accuracy); peaks late: layer 19 (+0.558), 17 (+0.411), 14 (+0.343) | job 26457769, `.../llava16_knockout_clevr_lite_il/knockout/knockout_summary.json` |
-| 2026-09-08 10:00 | All 32 dictionaries trained; 29 of 32 chains through identify + ablate | jobs 26459245-26459276, `output/experiments/llava16_sae_fit_table.json` |
+| 2026-09-08 10:00 | All 32 dictionaries trained; 29 of 32 chains through identify + ablate | jobs 26459245-26459276, `output/experiments/llava16/llava16_sae_fit_table.json` |
 | 2026-09-08 10:05 | `Image->Question` sweep complete (n = 7,186). The n = 1,546 span decision holds unchanged: same ranking, layers 11 (+1.512) and 14 (+1.313) dominating, 13 inhibitory (-0.203) | job 26457768 |
 | 2026-09-08 10:52 | **Replace-mode pass-through gate passes**: worst span drop +0.00777 against a 0.02 threshold. The run stays in the published replace-mode protocol | job 26464470 |
 | 2026-09-08 11:00 | Full matrix submitted (`--phases all`, includes the isolation phase), 32/32 per-layer chains complete | job 26465465 |
@@ -141,7 +141,7 @@ side lost precisely one.
 ## Dictionary fit: the first precondition holds
 
 All 32 dictionaries, trained on this task's own activations with the LLaVA recipe
-(`output/experiments/llava16_sae_fit_table.json`, written by `scripts/sae_fit_table.py`):
+(`output/experiments/llava16/llava16_sae_fit_table.json`, written by `scripts/sae_fit_table.py`):
 
 | | explained variance | mean L0 | dead fraction |
 |---|---|---|---|
@@ -184,9 +184,9 @@ stands, as the Gemma decision did.
 ## Results
 
 53 conditions, 256 evaluation items, replace mode, span 10-14.
-Artifacts: `output/experiments/llava16_multilayer_clevr_lite_l10-14_attn_out_question/analysis/`
-(`multilayer_summary.json`, `.md`), `output/experiments/llava16_single_layer_ak.json`,
-`output/experiments/llava16_metric_decomposition.json`, figures under
+Artifacts: `output/experiments/llava16/llava16_multilayer_clevr_lite_l10-14_attn_out_question/analysis/`
+(`multilayer_summary.json`, `.md`), `output/experiments/llava16/llava16_single_layer_ak.json`,
+`output/experiments/llava16/llava16_metric_decomposition.json`, figures under
 `output/paper_figures/llava16/`.
 
 ### The headline: recovery is much higher than on LLaVA-1.5, and not constant

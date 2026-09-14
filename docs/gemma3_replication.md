@@ -61,9 +61,9 @@ the spread-vs-concentrated comparison is 40 x 7 = 280 features and k = 280 is ad
 concentrated curve. Layer 0 is the second-strongest site and, unlike LLaVA's, its dictionary is
 usable (explained variance 0.79); it is analysed as a single site, not folded into the span.
 
-| 2026-09-07 08:17 | Replace-mode pass-through gate (nothing ablated, reconstruction substituted): margin drop +1.56 over L11-17, +1.52 L12-17, +1.39 L13-17, +0.61 L14-17, +0.50 L15-17, **-1.58** L16-17, **-0.90** L17 alone; relative perturbation at the site 0.037-0.042. Delta-mode pass-through 0.0000 exactly. Confirms delta mode was necessary: the reconstruction error alone is the size of a single-layer feature effect and changes sign with the span. | `output/experiments/gemma3_4b_multilayer_clevr_lite_l11-17_attn_z_question_replace_gate` (job 26431513) |
+| 2026-09-07 08:17 | Replace-mode pass-through gate (nothing ablated, reconstruction substituted): margin drop +1.56 over L11-17, +1.52 L12-17, +1.39 L13-17, +0.61 L14-17, +0.50 L15-17, **-1.58** L16-17, **-0.90** L17 alone; relative perturbation at the site 0.037-0.042. Delta-mode pass-through 0.0000 exactly. Confirms delta mode was necessary: the reconstruction error alone is the size of a single-layer feature effect and changes sign with the span. | `output/experiments/gemma3_4b/gemma3_4b_multilayer_clevr_lite_l11-17_attn_z_question_replace_gate` (job 26431513) |
 
-| 2026-09-07 10:24 | 57-condition matrix complete (2 h 39 m); analysis, decomposition and figures run; isolation phase (ablation with Image->Question severed at every layer) added and run | `output/experiments/gemma3_4b_multilayer_clevr_lite_l11-17_attn_z_question/analysis/`, `gemma3_4b_metric_decomposition.json`, `output/paper_figures/gemma3/` |
+| 2026-09-07 10:24 | 57-condition matrix complete (2 h 39 m); analysis, decomposition and figures run; isolation phase (ablation with Image->Question severed at every layer) added and run | `output/experiments/gemma3_4b/gemma3_4b_multilayer_clevr_lite_l11-17_attn_z_question/analysis/`, `gemma3_4b/gemma3_4b_metric_decomposition.json`, `output/paper_figures/gemma3/` |
 
 ## Results in one place
 
@@ -82,7 +82,7 @@ readings, so a reviewer can check the text against the artifacts:
 - **Single-layer A vs K, all 34 layers**: Spearman 0.03; A > K at 23 layers. Span layers
   (A / K): 11: 6.88/2.46, 12: 0.04/2.55, 13: 0.82/0.29, 14: 2.66/0.89, 15: 5.02/1.36,
   16: 9.45/-0.40, 17: 2.18/5.43 (R 0.40 [0.34, 0.46]). Controls <= 0.34.
-- **Decomposition** (`gemma3_4b_metric_decomposition.json`): every single-layer ablation and
+- **Decomposition** (`gemma3_4b/gemma3_4b_metric_decomposition.json`): every single-layer ablation and
   every single-layer knockout except L11 leaves the true option within 0.02 nats; margin drops
   are false-option rises. Baseline true -0.05, false -32.66.
 - **Matrix**: joint A(11-17) 28.61 (true 10.02 + false 18.59; gen acc 0.000; emits "okay" 174/256)
@@ -100,7 +100,7 @@ readings, so a reviewer can check the text against the artifacts:
   the pathway; metric unsaturated) all fail on this model + dictionary pair; the addition reports
   it as a boundary-conditions result with the diagnostics that detect each failure.
 
-| 2026-09-07 15:05 | Both sweeps complete (Image->Last 16 h 20 m, Image->Question 17 h 45 m); final distill, decomposition, figures; landscape numbers filled into the addition | `output/experiments/gemma3_4b_knockout_clevr_lite_{iq,il}/knockout/knockout_summary.json`, `overleaf/gemma3_addition.tex`, `overleaf/paper_figures/gemma3_4b_*` |
+| 2026-09-07 15:05 | Both sweeps complete (Image->Last 16 h 20 m, Image->Question 17 h 45 m); final distill, decomposition, figures; landscape numbers filled into the addition | `output/experiments/gemma3_4b/gemma3_4b_knockout_clevr_lite_{iq,il}/knockout/knockout_summary.json`, `overleaf/gemma3_addition.tex`, `overleaf/paper_figures/gemma3_4b_*` |
 
 ## Deliverables
 
@@ -109,6 +109,6 @@ readings, so a reviewer can check the text against the artifacts:
   bib entries and suggested abstract/limitations edits as comments at the end of the tex.
 - Code: `adapters/hf_gemma3.py`, `core/sparse_autoencoder.py` (JumpReLU), `cli/import_sae.py`,
   the `isolation` phase and `error_term` option, Gemma configs, Slurm wrappers, analysis scripts.
-- Artifacts (summaries, committed-size): `output/experiments/gemma3_4b_*`; raw per-sample files
+- Artifacts (summaries, committed-size): `output/experiments/gemma3_4b/gemma3_4b_*`; raw per-sample files
   and dictionaries remain on Snellius scratch (`/scratch-shared/rkremer/vlm-flow-probe/output`,
   14-day purge).
