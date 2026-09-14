@@ -19,19 +19,33 @@ datasets
 # Policy (carried from the archive repo): every large result JSON has a small
 # committed *.summary.json sibling produced by vfp-distill — the summaries are
 # what analyses and the paper cite. Raw files stay local, never in git.
-**/sae_checkpoint.pt                  # ~1 GB each; retrain from configs
-**/checkpoint.jsonl                   # resume logs, one line per completed unit
-**/_activation_cache/                 # training scratch, reassembled then deleted
-output/**/run_log.txt                 # mostly tqdm redraw
+# Git reads "#" as a comment only at the start of a line, so a trailing comment
+# becomes part of the pattern and the rule matches nothing. Every note below is
+# on its own line for that reason -- check with `git check-ignore -v <path>`.
+
+# ~1 GB each; retrain from configs
+**/sae_checkpoint.pt
+# resume logs, one line per completed unit
+**/checkpoint.jsonl
+# training scratch, reassembled then deleted
+**/_activation_cache/
+# mostly tqdm redraw
+output/**/run_log.txt
 output/**/pipeline_log.txt
 output/**/pipeline_pid.txt
-output/**/causal_feature_stats.json   # distilled to causal_feature_stats.summary.json
-output/**/feature_stats.json          # distilled to feature_stats.summary.json
-output/**/ablation_results.json       # distilled to .summary.json
-output/**/ablation_v2_results.json    # distilled to .summary.json
-output/**/knockout_results.json       # knockout_summary.json is the committed sibling
-output/**/conditions/*/results.json   # summary.json sibling carries per_sample_distilled
-output/**/feature_[0-9]*.png          # per-feature visualizations, regenerable
+# distilled to causal_feature_stats.summary.json
+output/**/causal_feature_stats.json
+# distilled to feature_stats.summary.json
+output/**/feature_stats.json
+# distilled to .summary.json
+output/**/ablation_results.json
+output/**/ablation_v2_results.json
+# knockout_summary.json is the committed sibling
+output/**/knockout_results.json
+# summary.json sibling carries per_sample_distilled
+output/**/conditions/*/results.json
+# per-feature visualizations, regenerable
+output/**/feature_[0-9]*.png
 
 # --- gate runs ---------------------------------------------------------------
 output/gate/
