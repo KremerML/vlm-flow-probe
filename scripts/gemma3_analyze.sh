@@ -7,7 +7,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=${PY:-.venv/bin/python}
-ML=${1:-output/experiments/gemma3_4b_multilayer_clevr_lite_l11-17_attn_z_question}
+ML=${1:-output/experiments/gemma3_4b/gemma3_4b_multilayer_clevr_lite_l11-17_attn_z_question}
 SPAN=${SPAN:-"11 12 13 14 15 16 17"}
 CONC=${CONC:-17}
 

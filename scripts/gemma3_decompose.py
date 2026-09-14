@@ -9,8 +9,8 @@ generation accuracy). Stdlib only; reads the raw per-sample files, so it runs
 where they live.
 
     python scripts/gemma3_decompose.py --root output/experiments --tag gemma3_4b \\
-        --sweep output/experiments/gemma3_4b_knockout_clevr_lite_iq/knockout/checkpoint.jsonl \\
-        --out output/experiments/gemma3_4b_metric_decomposition.json
+        --sweep output/experiments/gemma3_4b/gemma3_4b_knockout_clevr_lite_iq/knockout/checkpoint.jsonl \\
+        --out output/experiments/gemma3_4b/gemma3_4b_metric_decomposition.json
 """
 
 import argparse
@@ -18,6 +18,8 @@ import glob
 import json
 import os
 from collections import defaultdict
+
+from _paths import resolve_root
 
 
 def mean(xs):
@@ -57,12 +59,14 @@ def main():
     parser.add_argument("--sweep", nargs="*", default=[])
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
+    root = resolve_root(args.root, args.tag)
+    print("root:", root)
     report = {"single_layer": {}, "multilayer": {}, "sweep": {}}
 
     for path in sorted(
         glob.glob(
             os.path.join(
-                args.root,
+                root,
                 f"{args.tag}_sae_clevr_lite_layer*_{args.site}_question_causal",
                 "results",
                 "ablation_v2_results.json",
@@ -76,7 +80,7 @@ def main():
             entry["random_first_set"] = decompose(data["random_results"])
         report["single_layer"][layer] = entry
 
-    for ml in sorted(glob.glob(os.path.join(args.root, f"{args.tag}_multilayer_*"))):
+    for ml in sorted(glob.glob(os.path.join(root, f"{args.tag}_multilayer_*"))):
         conds = {}
         for path in sorted(glob.glob(os.path.join(ml, "conditions", "*", "results.json"))):
             rows = json.load(open(path))["per_sample"]
@@ -97,6 +101,10 @@ def main():
             rows, "base_true_logprob", "new_true_logprob", "base_false_logprob", "new_false_logprob"
         )
     report["sweep_items"] = n_items
+    if not (report["single_layer"] or report["multilayer"] or report["sweep"]):
+        raise SystemExit(
+            f"nothing to decompose: no runs for tag {args.tag} under {root}, and no --sweep rows"
+        )
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w") as handle:

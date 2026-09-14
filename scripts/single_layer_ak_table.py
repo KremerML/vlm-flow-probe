@@ -18,12 +18,14 @@ comparison, so ``--multilayer_dir`` is used for the layers it covers and the
 sweep fills in the rest; every row says which source it used.
 
     python scripts/single_layer_ak_table.py --tag llava16 --site attn_out \
-        --multilayer_dir output/experiments/llava16_multilayer_clevr_lite_l10-14_attn_out_question
+        --multilayer_dir output/experiments/llava16/llava16_multilayer_clevr_lite_l10-14_attn_out_question
 """
 
 import argparse
 import json
 import os
+
+from _paths import resolve_root
 
 
 def load_json(path):
@@ -47,7 +49,9 @@ def main():
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
-    flow_dir = args.flow_dir or os.path.join(args.root, f"{args.tag}_knockout_clevr_lite_iq")
+    root = resolve_root(args.root, args.tag)
+    print("root:", root)
+    flow_dir = args.flow_dir or os.path.join(root, f"{args.tag}_knockout_clevr_lite_iq")
     knockout = {
         int(row["layer"]): float(row["mean_margin_drop"])
         for row in load_json(os.path.join(flow_dir, "knockout", "knockout_summary.json"))
@@ -65,7 +69,7 @@ def main():
     rows = []
     for layer in range(args.n_layers):
         path = os.path.join(
-            args.root,
+            root,
             f"{args.tag}_sae_clevr_lite_layer{layer}_{args.site}_question_causal",
             "results",
             "ablation_v2_results.summary.json",
@@ -90,9 +94,9 @@ def main():
             }
         )
     if not rows:
-        raise SystemExit(f"no per-layer ablation summaries found under {args.root} for tag {args.tag}")
+        raise SystemExit(f"no per-layer ablation summaries found under {root} for tag {args.tag}")
 
-    out = args.out or os.path.join(args.root, f"{args.tag}_single_layer_ak.json")
+    out = args.out or os.path.join(root, f"{args.tag}_single_layer_ak.json")
     with open(out, "w") as handle:
         json.dump(rows, handle, indent=1)
 

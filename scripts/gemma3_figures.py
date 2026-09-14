@@ -18,6 +18,7 @@ import json
 import os
 
 import matplotlib
+from _paths import resolve_root
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -564,15 +565,22 @@ def main():
     parser.add_argument("--figdir", default="paper/gemma3_figures")
     args = parser.parse_args()
 
-    ko = knockout_rows(args.root, args.tag)
-    fig1(ko, args.span, args.figdir, args.tag, args.n_layers)
-    fig_decomposition(args.root, args.tag, args.figdir, args.span, args.n_layers)
-    fig_single(
-        single_layer_rows(args.root, args.tag, args.site), ko, args.figdir, args.tag, args.n_layers, args.span
-    )
+    root = resolve_root(args.root, args.tag)
+    print("root:", root)
+
+    ko = knockout_rows(root, args.tag)
+    single = single_layer_rows(root, args.tag, args.site)
     ml = args.multilayer_dir or next(
-        iter(glob.glob(os.path.join(args.root, f"{args.tag}_multilayer_*"))), None
+        iter(glob.glob(os.path.join(root, f"{args.tag}_multilayer_*"))), None
     )
+    # An empty figure set is a wrong --root, not a finished run. Say so instead of
+    # writing nothing and exiting 0.
+    if not ko and not single and ml is None:
+        raise SystemExit(f"no {args.tag} run artifacts under {root}: nothing to plot")
+
+    fig1(ko, args.span, args.figdir, args.tag, args.n_layers)
+    fig_decomposition(root, args.tag, args.figdir, args.span, args.n_layers)
+    fig_single(single, ko, args.figdir, args.tag, args.n_layers, args.span)
     if ml and os.path.isdir(os.path.join(ml, "conditions")):
         if args.concentrated is not None:
             fig6(ml, args.figdir, args.tag, args.concentrated)

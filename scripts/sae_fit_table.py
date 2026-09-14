@@ -18,6 +18,8 @@ import json
 import os
 import re
 
+from _paths import resolve_root
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -28,8 +30,10 @@ def main():
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
+    root = resolve_root(args.root, args.tag)
+    print("root:", root)
     pattern = os.path.join(
-        args.root, f"{args.tag}_sae_clevr_lite_layer*_{args.site}_question"
+        root, f"{args.tag}_sae_clevr_lite_layer*_{args.site}_question"
     )
     rows = []
     for directory in glob.glob(pattern):
@@ -39,8 +43,18 @@ def main():
             continue
         with open(path) as handle:
             payload = json.load(handle)
-        # Older runs wrote the metrics at the top level; newer ones key by split.
-        metrics = payload.get(args.split, payload)
+        if args.split in payload:
+            metrics = payload[args.split]
+        elif "explained_variance" in payload:
+            # Older runs wrote the metrics at the top level.
+            metrics = payload
+        else:
+            # Falling back to the payload here is what wrote a table of nulls:
+            # Gemma keys its metrics by "task", not "train".
+            raise SystemExit(
+                f"{path}: no '{args.split}' split (has: {', '.join(sorted(payload))}). "
+                "Pass --split with one of those."
+            )
         rows.append(
             {
                 "layer": int(match.group(1)),
@@ -55,7 +69,7 @@ def main():
         raise SystemExit(f"no reconstruction_eval.json found under {pattern}")
     rows.sort(key=lambda r: r["layer"])
 
-    out = args.out or os.path.join(args.root, f"{args.tag}_sae_fit_table.json")
+    out = args.out or os.path.join(root, f"{args.tag}_sae_fit_table.json")
     with open(out, "w") as handle:
         json.dump(rows, handle, indent=1)
 
